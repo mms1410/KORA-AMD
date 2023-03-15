@@ -1,6 +1,7 @@
 library(data.table)
 library(mgcv)
 #-------------------------------------------------------------------------------
+fac.to.num <- function(x) as.numeric(as.character(x))
 #-------------------------------------------------------------------------------
 root.folder <- rstudioapi::getSourceEditorContext()$path
 root.folder <- dirname(dirname(root.folder))
@@ -33,8 +34,19 @@ colnames(data.fit) <- colnames.new.fit
 ## same column names
 colnames(data.ff4) <- colnames.new.fit
 #-------------------------------------------------------------------------------
+## partition according to AMD definition and AMD score (ferris vs. conti)
+# definition1: no AMD at baseline in at least one eye
+# definition2: no AMD or Early AMD in at least one eye
 
+## get data at t = 0
+data.fit.start <- data.fit[, .SD[which.min(Age)], by = Person_id]
+data.ff4.start <- data.ff4[, .SD[which.min(Age)], by = Person_id]
+
+person_id.fit.def1.ferris <- data.fit.start[fac.to.num(ferris_score_r) == 0 | fac.to.num(ferris_score_l == 0), Person_id]
+person_id.fit.def2.ferris <- data.fit.start[(fac.to.num(ferris_score_r) %in% c(0, 1)) | (fac.to.num(ferris_score_l == 0) %in% c(0, 1)), Person_id]
 #-------------------------------------------------------------------------------
+## partition according to age group
+
 #-------------------------------------------------------------------------------
 to.delete <- ls()
 to.delete <- to.delete[!to.delete %in% c("data.ff4",
