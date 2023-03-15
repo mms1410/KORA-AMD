@@ -1,5 +1,6 @@
 library(data.table)
-library(mgcv)
+library(ggplot2)
+library(ggsankey)
 #-------------------------------------------------------------------------------
 fac.to.num <- function(x) as.numeric(as.character(x))
 #-------------------------------------------------------------------------------
@@ -44,15 +45,24 @@ data.ff4.start <- data.ff4[, .SD[which.min(Age)], by = Person_id]
 
 person_id.fit.def1.ferris <- data.fit.start[fac.to.num(ferris_score_r) == 0 | fac.to.num(ferris_score_l == 0), Person_id]
 person_id.fit.def2.ferris <- data.fit.start[(fac.to.num(ferris_score_r) %in% c(0, 1)) | (fac.to.num(ferris_score_l == 0) %in% c(0, 1)), Person_id]
+
+data.fit.ferris.1 <- data.fit[Person_id %in% person_id.fit.def1.ferris]
+data.fit.ferris.2 <- data.fit[Person_id %in% person_id.fit.def2.ferris]
 #-------------------------------------------------------------------------------
 ## partition according to age group
+fit.age.1 <- seq(from=34, to=45)
+fit.age.2 <- seq(from=46, to=50)
+fit.age.3 <- seq(from=51, to=55)
+
+ff4.age.1 <- seq(from=53, to=60)
+ff4.age.2 <- seq(from=61, to=65)
+ff4.age.3 <- seq(from=66, to=75)
+
+data.fit.ferris.1.age1 <- data.fit.ferris.1[Age %in% fit.age.1]
+data.fit.ferris.1.age2 <- data.fit.ferris.1[Age %in% fit.age.2]
+data.fit.ferris.1.age3 <- data.fit.ferris.1[Age %in% fit.age.3]
 
 #-------------------------------------------------------------------------------
-to.delete <- ls()
-to.delete <- to.delete[!to.delete %in% c("data.ff4",
-                                         "data.ff4.1", "data.ff4.2", "data.ff4.3",
-                                         "data.fit",
-                                         "data.fit.1", "data.fit.2", "data.fit.3")]
-rm(list = to.delete)
+
 #-------------------------------------------------------------------------------
 
