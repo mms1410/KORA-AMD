@@ -40,8 +40,6 @@ to.factor.fit <- c("Person_id", "FIT_pcsex", "FIT_erh_nr",
                    )
 data.fit[, (to.factor.fit) := lapply(.SD, as.factor), .SDcols = to.factor.fit]
 #-------------------------------------------------------------------------------
-colnames(data.fit)
-colnames(data.ff4)
 #-------------------------------------------------------------------------------
 colnames.new.fit <- colnames(data.fit)
 colnames.new.fit[colnames.new.fit == "FIT_Three_Conti_OD_2"] <- "continent_score_r"
@@ -62,6 +60,12 @@ colnames.new.ff4[colnames.new.ff4 == "FF4_u3talteru"] <- "age"
 colnames(data.ff4) <- colnames.new.ff4
 colnames(data.ff4)
 #-------------------------------------------------------------------------------
+summary(data.fit$age)
+summary(data.ff4$age)
+data.fit$age <- data.fit$age - 18
+data.ff4$age <- data.ff4$age - 14
+summary(data.fit$age)
+summary(data.ff4$age)
 #-------------------------------------------------------------------------------
 ## partition according to AMD definition and AMD score (ferris vs. conti)
 # definition1: no AMD at baseline in at least one eye
@@ -70,6 +74,9 @@ colnames(data.ff4)
 ## get data at t = 0 (needed for AMD definition)
 data.fit.start <- data.fit[, .SD[which.min(age)], by = Person_id] # nrow 451
 data.ff4.start <- data.ff4[, .SD[which.min(age)], by = Person_id] # nrow 261
+
+table(data.fit.start$age)
+table(data.ff4.start$age)
 #-------------------------------------------------------------------------------
 ## get person id for AMD definitions
 ## fit data
@@ -123,6 +130,10 @@ data.ff4.ferris.def1 <- data.ff4[Person_id %in% person_id.ff4.def1.ferris]
 data.ff4.ferris.def2 <- data.ff4[Person_id %in% person_id.ff4.def2.ferris]
 
 #-------------------------------------------------------------------------------
+ncol(data.fit.ferris.def1)
+ncol(data.fit.ferris.def2)
+ncol(data.ff4.ferris.def1)
+ncol(data.ff4.ferris.def2)
 #-------------------------------------------------------------------------------
 ## partition according to age group
 fit.age.1 <- seq(from=34, to=45)
@@ -134,35 +145,60 @@ ff4.age.2 <- seq(from=61, to=65)
 ff4.age.3 <- seq(from=66, to=75)
 
 ## FIT ferris-score
+## age group 1
 data.fit.ferris.def1.age1 <- data.fit.ferris.def1[age %in% fit.age.1]
 data.fit.ferris.def1.age1$age_group <- as.factor("(34,45)")
 data.fit.ferris.def2.age1 <- data.fit.ferris.def2[age %in% fit.age.1]
 data.fit.ferris.def2.age1$age_group <- as.factor("(34,45)")
 
+## age group 2
 data.fit.ferris.def1.age2 <- data.fit.ferris.def1[age %in% fit.age.2]
 data.fit.ferris.def1.age2$age_group <- as.factor("(45,50)")
 data.fit.ferris.def2.age2 <- data.fit.ferris.def2[age %in% fit.age.2]
 data.fit.ferris.def2.age2$age_group <- as.factor("45,50")
 
+## age group 3
 data.fit.ferris.def1.age3 <- data.fit.ferris.def1[age %in% fit.age.3]
 data.fit.ferris.def1.age3$age_group <- as.factor("(50,55)")
 data.fit.ferris.def2.age3 <- data.fit.ferris.def2[age %in% fit.age.3]
-data.fit.ferris.def2.age2$age_group <- as.factor("(50,55)")
+data.fit.ferris.def2.age3$age_group <- as.factor("(50,55)")
 
 ## FF4 ferris-score
+## age group 1
 data.ff4.ferris.def1.age1 <- data.ff4.ferris.def1[age %in% ff4.age.1]
 data.ff4.ferris.def1.age1$age_group <- as.factor("(53,60)")
 data.ff4.ferris.def2.age1 <- data.ff4.ferris.def2[age %in% ff4.age.1]
 data.ff4.ferris.def2.age1$age_group <- as.factor("(53,60)")
 
+## age group 2
 data.ff4.ferris.def1.age2 <- data.ff4.ferris.def1[age %in% ff4.age.2]
 data.ff4.ferris.def1.age2$age_group <- as.factor("(60,65)")
 data.ff4.ferris.def2.age2 <- data.ff4.ferris.def2[age %in% ff4.age.2]
 data.ff4.ferris.def2.age2$age_group <- as.factor("(60,65)")
 
+
+## age group 3
 data.ff4.ferris.def1.age3 <- data.ff4.ferris.def1[age %in% ff4.age.3]
 data.ff4.ferris.def1.age3$age_group <- as.factor("(65,75)")
 data.ff4.ferris.def2.age3 <- data.ff4.ferris.def2[age %in% ff4.age.3]
 data.ff4.ferris.def2.age3$age_group <- as.factor("(65, 75)")
 #-------------------------------------------------------------------------------
+ncol(data.fit.ferris.def1.age1)
+ncol(data.fit.ferris.def1.age2)
+ncol(data.fit.ferris.def1.age3)
+
+ncol(data.fit.ferris.def2.age1)
+ncol(data.fit.ferris.def2.age2)
+ncol(data.fit.ferris.def2.age3) ## !!!!!ISSUE HERE !!!! 10 instead of 11
+
+
+ncol(data.ff4.ferris.def1.age1)
+ncol(data.ff4.ferris.def1.age2)
+ncol(data.ff4.ferris.def1.age3)
+
+ncol(data.ff4.ferris.def2.age1)
+ncol(data.ff4.ferris.def2.age2)
+ncol(data.ff4.ferris.def2.age3)
+
+
 #-------------------------------------------------------------------------------
