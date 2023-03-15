@@ -62,6 +62,9 @@ colnames.new.ff4[colnames.new.ff4 == "FF4_u3csex"] <- "sex"
 colnames(data.ff4) <- colnames.new.ff4
 colnames(data.ff4)
 #-------------------------------------------------------------------------------
+levels(data.ff4$sex) <- c("M", "W")
+levels(data.fit$sex) <- c("M", "W")
+#-------------------------------------------------------------------------------
 summary(data.fit$age)
 summary(data.ff4$age)
 data.fit$age <- data.fit$age - 18
