@@ -72,6 +72,39 @@ set.age.groups <- function(dtbl, named.list.ff4, named.list.fit, col.age = "ltal
   
   return(dtbl)
 }
+
+set.groups <- function(dtbl, to.group) {
+  #'
+  #' Set groups of analysis.
+  #' 
+  #' note:
+  #' Ferris:
+  #'     0: no AMD no apparent change
+  #'     1: no AMD normal aging change
+  #'     2: early AMD
+  #'     3: Intermediate AMD
+  #'     4: Late AMD
+  #'     NA
+  #' Continental:
+  #'     0: no AMD
+  #'     1: mild early
+  #'     2: moderate early
+  #'     3: severe early
+  #'     4: late AMD
+  #'
+  assert(all(names(to.group) %in% colnames(dtbl)))
+  
+  for (groupname in names(to.group)) {
+    entry <- to.group[[groupname]]
+    col <- dtbl[[groupname]]
+    col.levels <-  levels(col)
+    assert(all(col.levels %in% entry))
+    col <- fct_recode(col, !!!entry)
+    dtbl[[groupname]] <- col
+  }
+  
+  return(dtbl)
+}
   
   
 get.data.summary <- function(dtbl, verbose=TRUE, log) {
