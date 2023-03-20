@@ -52,9 +52,9 @@ set.age.groups <- function(dtbl, named.list.ff4, named.list.fit, col.age = "ltal
   #'
   #'
   #' @param dtbl (data.table):
-  #' @param col.age (str):
-  #' @param named.list.ff4 (str):
-  #' @param named.list.fit (str):
+  #' @param col.age (chr):
+  #' @param named.list.ff4 (chr):
+  #' @param named.list.fit (chr):
   #'
   #' @return data.table:
   #'
@@ -107,17 +107,49 @@ set.groups <- function(dtbl, to.group) {
 }
   
   
-get.data.summary <- function(dtbl, verbose=TRUE, log) {
+get.data.summary.factors <- function(dtbl, cols.summary = "", verbose=TRUE, log.filename = "", append = FALSE) {
   #'
   #'
   #'
   #'
-  #'
-  #'
+  #' @param dtbl (data.table):
+  #' @param cols.summary (chr):
+  #' @param verbose (logi):
+  #' @param log.filename (chr):
+  #' @param append (logi)
   #'
   assertDataTable(dtbl)
   assertLogical(verbose)
-  assertLogical(log)
+  assertString(log.filename)
+  assertString(cols.summary)
+  assertLogical(append)
+  if (cols.summary == "") {
+    cols.summary = c(
+      colnames(dtbl)[grepl(pattern = "Ferris", colnames(dtbl))],
+      colnames(dtbl)[grepl(pattern = "Conti", colnames(dtbl))]
+    )
+    if (length(cols.summary) > 1) assert(all(cols.summary != ""))
+  }
+  assert(all(cols.summary %in% colnames(dtbl)))
+  if (log.filename != "") {
+    if (!file.exists(log.filename)) {
+      assert(dir.exists(dirname(log.filename)))
+    }
+  }
   
+  smry <- data.table()
+  for (col in cols.summary) {
+    smry <- rbindlist(list(
+      smry,
+      as.data.table(t(c("variable" = col, summary(data[[col]]))))
+    ))
+  }
+  if (verbose) {
+    print(smry)
+  }
   
+  if (!log.filename == "") {
+    fwrite(smry, file = log.filename, append = append)
+  }
+  return(NULL)
 }

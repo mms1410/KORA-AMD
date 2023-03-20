@@ -60,3 +60,4 @@ to.group <- list(
 )
 data <- set.groups(data, to.group)
 #------------------------------------------------------------------------------
+get.data.summary.factors(data)
