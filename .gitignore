@@ -1,3 +1,6 @@
 .Rhisotry
 data/*.sav
 archive/
+R/*.pdf
+R/*.html
+assets/graphics/*
