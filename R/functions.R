@@ -91,6 +91,7 @@ set.groups <- function(dtbl, to.group) {
   #'     2: moderate early
   #'     3: severe early
   #'     4: late AMD
+  #'     NA
   #'
   assert(all(names(to.group) %in% colnames(dtbl)))
   
@@ -107,7 +108,7 @@ set.groups <- function(dtbl, to.group) {
 }
   
   
-get.data.summary.factors <- function(dtbl, cols.summary = "", verbose=TRUE, log.filename = "", append = FALSE) {
+get.data.summary.factors <- function(dtbl, cols.summary = "", log.filename = "", append = FALSE) {
   #'
   #'
   #'
@@ -119,7 +120,6 @@ get.data.summary.factors <- function(dtbl, cols.summary = "", verbose=TRUE, log.
   #' @param append (logi)
   #'
   assertDataTable(dtbl)
-  assertLogical(verbose)
   assertString(log.filename)
   assertString(cols.summary)
   assertLogical(append)
@@ -133,6 +133,7 @@ get.data.summary.factors <- function(dtbl, cols.summary = "", verbose=TRUE, log.
   assert(all(cols.summary %in% colnames(dtbl)))
   if (log.filename != "") {
     if (!file.exists(log.filename)) {
+      # create new file in folder
       assert(dir.exists(dirname(log.filename)))
     }
   }
@@ -144,12 +145,60 @@ get.data.summary.factors <- function(dtbl, cols.summary = "", verbose=TRUE, log.
       as.data.table(t(c("variable" = col, summary(data[[col]]))))
     ))
   }
-  if (verbose) {
-    print(smry)
-  }
-  
   if (!log.filename == "") {
     fwrite(smry, file = log.filename, append = append)
   }
-  return(NULL)
+  return(smry)
 }
+
+wide.to.long <- function(dtbl, study, score) {
+  #'
+  #' Transform dtbl from wide format into long format.
+  #'
+  #' @dtbl (data.table): data
+  #' @study (chr): fit or ff4
+  #' @score (chr): ferris or continental
+  #'
+  #' @return data.table
+  assertDataTable(dtbl)
+  assertChoice(study, c("fit", "ff4"))
+  assertChoice(score, c("ferris", "continental"))
+  
+  fit.eyes.ferris <- c("PTFerris_RE_2_sf", "PTFerris_LI_2_sf")
+  fit.eyes.continent <- c("PTConti_RE_2_sf", "PTConti_LI_2_sf")
+  ff4.eyes.ferris <- c("U3TFerris_RE_2_sf", "U3TFerris_LI_2_sf")
+  ff3.eyes.continent <- c("U3TConti_RE_2_sf", "U3TConti_LI_2_sf")
+  
+  if (study == "fit") {
+    value_name <- "PT_amd_status"
+    variable_name <- "PT_eye_score_name"
+    if (score == "ferris") {
+      measure_vars <- fit.eyes.ferris
+      assert(all(measure_vars %in% colnames(dtbl)))
+    } else {
+      measure_vars <-  fit.eyes.continent
+      assert(all(measure_vars %in% colnames(dtbl)))
+    }
+  } else {
+    value_name <- "FF4_amd_status"
+    variable_name <- "FF4_amd_eye_sore_name"
+    if (score == "ferris") {
+      measure_vars <- ff4.eyes.ferris
+      assert(all(measure_vars %in% colnames(dtbl)))
+    } else {
+      measure_vars <- ff3.eyes.continent
+      assert(all(measure_vars %in% colnames(dtbl)))
+    }
+  }
+  ## if not measure var, then id var
+  id_vars <- colnames(dtbl)[!(colnames(dtbl) %in% measure_vars)]
+  
+  #dtbl <- data[, .(person_id, lcsex, ltalteru, LTFerris_RE_2_sf, LTFerris_LI_2_sf, U3TFerris_RE_2_sf, U3TFerris_LI_2_sf)]
+  melt(data = dtbl,
+      id.vars = id_vars,
+      measure.vars = measure_vars,
+      value.name = value_name,
+      variable.name = variable_name,
+      value.factor = TRUE)
+}
+
