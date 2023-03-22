@@ -60,6 +60,12 @@ to.group <- list(
 )
 data <- set.groups(data, to.group)
 data$lcsex <- fct_recode(data[["lcsex"]], !!!c("M" = "1", "F" = "2"))
+# data$ltrauchp <- fct_recode(data[["ltrauchp"]],
+#                             !!!c("non_smoker_neither_passive" = "0",
+#                                  "non_smoker_currently_passive" = "1",
+#                                  "former_smoker_currently_not_passive" = "2",
+#                                  "former_smoker_currently_passive" = "3",
+#                                  "active_smoker" = "4"))
 data$person_id <- as.factor(seq(from = 1, to = nrow(data)))
 #-------------------------------------------------------------------------------
 get.data.summary.factors(data)
@@ -82,7 +88,12 @@ ff4.ferris <- wide.to.long(
   study = "ff4"
 )
 ff4.ferris
-
+#-------------------------------------------------------------------------------
+library(lme4)
+model.ff4.ferris <- glmer(formula = FF4_amd_status ~ LTFerris_LI_2_sf + LTFerris_RE_2_sf +
+                            ltrauchp + ltalteru + lcsex + (1 | person_id),
+                          data = ff4.ferris,
+                          family = brms::multinomial())
 #-------------------------------------------------------------------------------
 #library(brms)
 #bform.ff4 <- bf(mvbind(U3TFerris_RE_2_sf, U3TFerris_LI_2_sf) ~ lcsex + ltalteru + (1|p|LTFerris_RE_2_sf) + (1|q|LTFerris_LI_2_sf))
