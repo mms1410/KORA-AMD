@@ -1,8 +1,9 @@
 library(data.table)
 library(checkmate)
 library(haven)
+library(cobalt)
 #-------------------------------------------------------------------------------
-preprocess.data <- function(dtbl, data.dictionary, age.groups.fit, age.groups.ff4) {
+subset_data <- function(dtbl, data.dictionary, age.groups.fit, age.groups.ff4) {
   #'
   #' Preprocess dtbl.
   #'
@@ -34,12 +35,15 @@ preprocess.data <- function(dtbl, data.dictionary, age.groups.fit, age.groups.ff
   dtbl[, (variables.numeric) := lapply(.SD, as.numeric), .SDcols = variables.numeric]
   dtbl <- zap_formats(dtbl[, ..select])
   
-  dtbl <- set.age.groups(dtbl, named.list.ff4 = age.groups.ff4, age.groups.fit)
+  dtbl <- set_age_groups(dtbl,
+                         named.list.ff4 = age.groups.ff4,
+                         named.list.fit = age.groups.fit
+                         )
   
   return(dtbl)
 }
 
-set.age.groups <- function(dtbl, named.list.ff4, named.list.fit, col.age = "ltalteru") {
+set_age_groups <- function(dtbl, named.list.ff4, named.list.fit, col.age = "ltalteru") {
   #'
   #' Set age groups for FIT and FF4 patients.
   #' 
@@ -73,7 +77,7 @@ set.age.groups <- function(dtbl, named.list.ff4, named.list.fit, col.age = "ltal
   return(dtbl)
 }
 
-set.groups <- function(dtbl, to.group) {
+set_groups <- function(dtbl, to.group) {
   #'
   #' Set groups of analysis.
   #' 
@@ -101,14 +105,41 @@ set.groups <- function(dtbl, to.group) {
     col.levels <-  levels(col)
     assert(all(col.levels %in% entry))
     col <- fct_recode(col, !!!entry)
+    col <- factor(col, ordered = TRUE)
     dtbl[[groupname]] <- col
   }
   
   return(dtbl)
 }
+
   
+split_data <- function(dtbl, col) {
+  #'
+  #' Split data into 4 subsets.
+  #'
+  #' 1. NO AMD to early AMD
+  #' 2. NO AMD to late AMD
+  #' 3. No AMD OR early AMD to late AMD 
+  #' 4. Early AMD to late AMD
+  #'
+  #'
+  assertDataTable(dtbl)
+  assertString(col)
+  assert(col %in% colnames(dtbl))
   
-get.data.summary.factors <- function(dtbl, cols.summary = "", log.filename = "", append = FALSE) {
+}
+
+
+split_smoker <- function(dtbl) {
+  #'
+  #' Split smoking column with levels non_smoker, former_smoker and active_smoker
+  #' into two columns: non_smoker vs. active smoker and non_smoker vs. former_smoker
+  #'
+  
+  # TODO
+}
+  
+get_summary_amd <- function(dtbl, cols.summary = "", log.filename = "", append = FALSE) {
   #'
   #'
   #'
@@ -151,7 +182,7 @@ get.data.summary.factors <- function(dtbl, cols.summary = "", log.filename = "",
   return(smry)
 }
 
-wide.to.long <- function(dtbl, study, score) {
+wide_to_long <- function(dtbl, study, score) {
   #'
   #' Transform dtbl from wide format into long format.
   #'
@@ -193,7 +224,6 @@ wide.to.long <- function(dtbl, study, score) {
   ## if not measure var, then id var
   id_vars <- colnames(dtbl)[!(colnames(dtbl) %in% measure_vars)]
   
-  #dtbl <- data[, .(person_id, lcsex, ltalteru, LTFerris_RE_2_sf, LTFerris_LI_2_sf, U3TFerris_RE_2_sf, U3TFerris_LI_2_sf)]
   melt(data = dtbl,
       id.vars = id_vars,
       measure.vars = measure_vars,
@@ -202,3 +232,17 @@ wide.to.long <- function(dtbl, study, score) {
       value.factor = TRUE)
 }
 
+
+subset_ff4_ferris <- function(dtbl) {
+  #'
+  #'
+  #'
+  #'
+  assertDataTable(dtbl)
+  assert("LTFerris_LI_2_sf" %in% conames(dtbl))
+  assert("LTFerris_RE_2_sf" %in% colnames(dtbl))
+  assert("U3TFerris_RE_2_sf" %in% colnames(dtbl))
+  assert("U3TFerris_LI_2_sf" %in% colnames(dtbl))
+  
+  dtbl[(!is.na(LTFerris_LI_2_sf) | !is.na(LTFerris_RE_2_sf)) & (!is.na(U3TFerris_RE_2_sf) | !is.na(U3TFerris_LI_2_sf))]
+}
