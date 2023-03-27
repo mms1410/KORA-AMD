@@ -76,19 +76,32 @@ data$PT_ferris_worst_eye <- pmax(data$PTFerris_LI_2_sf, data$PTFerris_RE_2_sf, n
 data$U3T_conti_worst_eye <- pmax(data$U3TConti_LI_2_sf, data$U3TConti_RE_2_sf, na.rm = TRUE)
 data$U3T_ferris_worst_eye <- pmax(data$U3TFerris_LI_2_sf, data$U3TFerris_RE_2_sf, na.rm = TRUE)
 #-------------------------------------------------------------------------------
-to_select <- c("person_id", "lcsex", "ltalteru", "ll_hdla", "ll_ldla", "ltrauchp", "ltsgecat",
-               "ltdiabet", "ltbmi", "ltphact", "ltwhoish","u3talteru", "PTALTERU",
-               "age_group_ff4", "age_group_fit",
-               "LTFerris_LI_2_sf", "LTFerris_RE_2_sf",
-               "LTConti_LI_2_sf", "LTConti_RE_2_sf",
-               "U3TConti_LI_2_sf", "U3TConti_RE_2_sf",
-               "U3TFerris_LI_2_sf", "U3TFerris_RE_2_sf",
-               "PTConti_LI_2_sf", "PTConti_RE_2_sf",
-               "PTFerris_LI_2_sf", "PTFerris_RE_2_sf"
-               )
-data <- data[, ..to_select]
+# FIT: 506 & FF4: 350
+# we know that if ferris score is na then also conti score and vice versa.
+data_fit <- data[!is.na(LT_ferris_worst_eye) & !is.na(PT_ferris_worst_eye)]
+data_ff4 <- data[!is.na(LT_ferris_worst_eye) & !is.na(U3T_ferris_worst_eye)] 
+data_fit[, grep("^u3t|ff4", colnames(data_fit), ignore.case = TRUE) := NULL]
+data_fit$time_bl_fu <- data_fit$PTALTERU - data_fit$ltalteru
+data_ff4[, grep("^PT|fit", colnames(data_ff4), ignore.case = TRUE) := NULL]
+data_ff4$time_bl_fu <- data_ff4$u3talteru - data_ff4$ltalteru
+
+duplicate_id <- data_fit$person_id[data_fit$person_id %in% data_ff4$person_id]
+data_ff4 <- data_ff4[!person_id %in% duplicate_id]
 #-------------------------------------------------------------------------------
-get_summary_amd(data)
+rm(list = c(
+  "age_groups_ff4",
+  "age_groups_fit",
+  "data_dictionary",
+  "to_group",
+  "def_amd_ferris",
+  "def_amd_continental",
+  "data"
+))
 #-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
+get_summary_amd_factor(data_fit, cols_summary = c("LT_conti_worst_eye", "LTConti_RE_2_sf", "LTConti_LI_2_sf",
+                                           "PT_conti_worst_eye", "PTConti_RE_2_sf", "PTConti_LI_2_sf"),
+                       log_filename = file.path(assets_folder, "fit_amd_summary.csv"))
+
+get_summary_amd_factor(data_ff4, cols_summary = c("LT_conti_worst_eye", "LTConti_RE_2_sf", "LTConti_LI_2_sf",
+                                           "U3T_conti_worst_eye", "U3TConti_RE_2_sf", "U3TConti_LI_2_sf"),
+                       log_filename = file.path(assets_folder, "ff4_amd_summary.csv"))

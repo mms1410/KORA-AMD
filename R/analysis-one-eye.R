@@ -7,29 +7,7 @@ assets_folder <- file.path(root_folder, "assets")
 path_data <- file.path(data_folder, "20230222_KORA_S4_FF4_FIT_StaBLab_with_riskfactors.sav")
 path_dictionary <- file.path(data_folder, "vars_to_select")
 source(file.path(r_folder, "preprocess.R"))
-rm(list = c(
-  "age_groups_ff4",
-  "age_groups_fit",
-  "data_dictionary",
-  "to_group",
-  "def_amd_ferris",
-  "def_amd_continental"
-))
 #-------------------------------------------------------------------------------
-# FIT: 506 & FF4: 350
-# we know that if ferris score is na then also conti score and vice versa.
-
-data_fit <- data[!is.na(LT_ferris_worst_eye) & !is.na(PT_ferris_worst_eye), .(person_id, lcsex, ltalteru, LT_ferris_worst_eye, LT_conti_worst_eye, PT_ferris_worst_eye, PT_conti_worst_eye, U3T_conti_worst_eye, ll_hdln, ltrauchp)]
-data_ff4 <- data[!is.na(LT_ferris_worst_eye) & !is.na(U3T_ferris_worst_eye), .(person_id, lcsex, ltalteru, LT_ferris_worst_eye, LT_conti_worst_eye, PT_ferris_worst_eye, PT_conti_worst_eye, U3T_conti_worst_eye, ll_hdln, ltrauchp)] 
-
-
-duplicate_id <- data_fit$person_id[data_fit$person_id %in% data_ff4$person_id]
-data_ff4 <- data_ff4[!person_id %in% duplicate_id]
-
-nrow(data_ff4)
-
-get_summary_amd(data_fit, cols.summary = c("LT_conti_worst_eye"))
-
 data_fit_conti_1 <- data_fit[data_fit[["LT_conti_worst_eye"]] == "no_amd" &
                              data_fit[["PT_conti_worst_eye"]] == "early_amd"]
 data_fit_conti_2 <- data_fit[data_fit[["LT_conti_worst_eye"]] == "no_amd" &
@@ -47,6 +25,10 @@ data_ff4_ferris_1 <- data_ff4_ferris_groups[[1]]
 data_ff4_ferris_2 <- data_ff4_ferris_groups[[2]]
 data_ff4_ferris_3 <- data_ff4_ferris_groups[[3]]
 data_ff4_ferris_4 <- data_ff4_ferris_groups[[4]]
+#-------------------------------------------------------------------------------
+data_fit[LT_conti_worst_eye == "no_amd"] # ok
+data_fit[LT_conti_worst_eye == "no_amd" | LT_conti_worst_eye == "early_amd"] #ok
+data_fit[LT_conti_worst_eye == "early_amd" & PT_conti_worst_eye == "late_amd"]
 
 #-------------------------------------------------------------------------------
 library(lme4)

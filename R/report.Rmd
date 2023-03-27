@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-source("preprocess-data.R")
+#source("preprocess-data.R")
 ```
 
 # I Deskriptive Statstik

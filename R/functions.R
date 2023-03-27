@@ -139,45 +139,51 @@ split_smoker <- function(dtbl) {
   # TODO
 }
   
-get_summary_amd <- function(dtbl, cols.summary = "", log.filename = "", append = FALSE) {
+get_summary_amd_factor <- function(dtbl, cols_summary = "", log_filename = "", append = FALSE) {
   #'
   #'
   #'
   #'
   #' @param dtbl (data.table):
-  #' @param cols.summary (chr):
+  #' @param cols_summary (chr):
   #' @param verbose (logi):
-  #' @param log.filename (chr):
+  #' @param log_filename (chr):
   #' @param append (logi)
   #'
   assertDataTable(dtbl)
-  assertString(log.filename)
-  assertString(cols.summary)
+  assertString(log_filename)
+  assertCharacter(cols_summary)
   assertLogical(append)
-  if (cols.summary == "") {
-    cols.summary = c(
+  for (col in cols_summary){
+    assert(is.factor(dtbl[[col]]))
+  }
+  if (length(cols_summary) == 1 && cols_summary == "") {
+    cols_summary = c(
       colnames(dtbl)[grepl(pattern = "Ferris", colnames(dtbl))],
       colnames(dtbl)[grepl(pattern = "Conti", colnames(dtbl))]
     )
-    if (length(cols.summary) > 1) assert(all(cols.summary != ""))
   }
-  assert(all(cols.summary %in% colnames(dtbl)))
-  if (log.filename != "") {
-    if (!file.exists(log.filename)) {
+  assert(all(cols_summary %in% colnames(dtbl)))
+  if (log_filename != "") {
+    if (!file.exists(log_filename)) {
       # create new file in folder
-      assert(dir.exists(dirname(log.filename)))
+      assert(dir.exists(dirname(log_filename)))
     }
   }
   
   smry <- data.table()
-  for (col in cols.summary) {
+  for (col in cols_summary) {
+    vals <- dtbl[[col]]
     smry <- rbindlist(list(
       smry,
-      as.data.table(t(c("variable" = col, summary(data[[col]]))))
+      as.data.table(t(c("variable" = col, table(vals),
+                        "n" = sum(!is.na(vals)),
+                        "NA" = sum(is.na(vals)),
+                        "total" = length(vals))))
     ))
   }
-  if (!log.filename == "") {
-    fwrite(smry, file = log.filename, append = append)
+  if (!log_filename == "") {
+    fwrite(smry, file = log_filename, append = append)
   }
   return(smry)
 }
@@ -195,29 +201,29 @@ wide_to_long <- function(dtbl, study, score) {
   assertChoice(study, c("fit", "ff4"))
   assertChoice(score, c("ferris", "continental"))
   
-  fit.eyes.ferris <- c("PTFerris_RE_2_sf", "PTFerris_LI_2_sf")
-  fit.eyes.continent <- c("PTConti_RE_2_sf", "PTConti_LI_2_sf")
-  ff4.eyes.ferris <- c("U3TFerris_RE_2_sf", "U3TFerris_LI_2_sf")
-  ff3.eyes.continent <- c("U3TConti_RE_2_sf", "U3TConti_LI_2_sf")
+  fit_eyes_ferris <- c("PTFerris_RE_2_sf", "PTFerris_LI_2_sf")
+  fit_eyes_conti <- c("PTConti_RE_2_sf", "PTConti_LI_2_sf")
+  ff4_eyes_ferris <- c("U3TFerris_RE_2_sf", "U3TFerris_LI_2_sf")
+  ff4_eyes_conti <- c("U3TConti_RE_2_sf", "U3TConti_LI_2_sf")
   
   if (study == "fit") {
     value_name <- "PT_amd_status"
     variable_name <- "PT_eye_score_name"
     if (score == "ferris") {
-      measure_vars <- fit.eyes.ferris
+      measure_vars <- fit_eyes_ferris
       assert(all(measure_vars %in% colnames(dtbl)))
     } else {
-      measure_vars <-  fit.eyes.continent
+      measure_vars <-  fit_eyes_conti
       assert(all(measure_vars %in% colnames(dtbl)))
     }
   } else {
     value_name <- "FF4_amd_status"
     variable_name <- "FF4_amd_eye_sore_name"
     if (score == "ferris") {
-      measure_vars <- ff4.eyes.ferris
+      measure_vars <- ff4_eyes_ferris
       assert(all(measure_vars %in% colnames(dtbl)))
     } else {
-      measure_vars <- ff3.eyes.continent
+      measure_vars <- ff4_eyes_conti
       assert(all(measure_vars %in% colnames(dtbl)))
     }
   }
@@ -230,19 +236,4 @@ wide_to_long <- function(dtbl, study, score) {
       value.name = value_name,
       variable.name = variable_name,
       value.factor = TRUE)
-}
-
-
-subset_ff4_ferris <- function(dtbl) {
-  #'
-  #'
-  #'
-  #'
-  assertDataTable(dtbl)
-  assert("LTFerris_LI_2_sf" %in% conames(dtbl))
-  assert("LTFerris_RE_2_sf" %in% colnames(dtbl))
-  assert("U3TFerris_RE_2_sf" %in% colnames(dtbl))
-  assert("U3TFerris_LI_2_sf" %in% colnames(dtbl))
-  
-  dtbl[(!is.na(LTFerris_LI_2_sf) | !is.na(LTFerris_RE_2_sf)) & (!is.na(U3TFerris_RE_2_sf) | !is.na(U3TFerris_LI_2_sf))]
 }
