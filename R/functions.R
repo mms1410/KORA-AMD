@@ -1,7 +1,6 @@
 library(data.table)
 library(checkmate)
 library(haven)
-library(cobalt)
 #-------------------------------------------------------------------------------
 subset_data <- function(dtbl, data.dictionary, age.groups.fit, age.groups.ff4) {
   #'
@@ -139,7 +138,7 @@ split_smoker <- function(dtbl) {
   # TODO
 }
   
-get_summary_amd_factor <- function(dtbl, cols_summary = "", log_filename = "", append = FALSE) {
+get_summary_amd_factor <- function(dtbl, cols_summary = "") {
   #'
   #'
   #'
@@ -147,13 +146,10 @@ get_summary_amd_factor <- function(dtbl, cols_summary = "", log_filename = "", a
   #' @param dtbl (data.table):
   #' @param cols_summary (chr):
   #' @param verbose (logi):
-  #' @param log_filename (chr):
   #' @param append (logi)
   #'
   assertDataTable(dtbl)
-  assertString(log_filename)
   assertCharacter(cols_summary)
-  assertLogical(append)
   for (col in cols_summary){
     assert(is.factor(dtbl[[col]]))
   }
@@ -164,12 +160,6 @@ get_summary_amd_factor <- function(dtbl, cols_summary = "", log_filename = "", a
     )
   }
   assert(all(cols_summary %in% colnames(dtbl)))
-  if (log_filename != "") {
-    if (!file.exists(log_filename)) {
-      # create new file in folder
-      assert(dir.exists(dirname(log_filename)))
-    }
-  }
   
   smry <- data.table()
   for (col in cols_summary) {
@@ -181,9 +171,6 @@ get_summary_amd_factor <- function(dtbl, cols_summary = "", log_filename = "", a
                         "NA" = sum(is.na(vals)),
                         "total" = length(vals))))
     ))
-  }
-  if (!log_filename == "") {
-    fwrite(smry, file = log_filename, append = append)
   }
   return(smry)
 }
@@ -236,4 +223,111 @@ wide_to_long <- function(dtbl, study, score) {
       value.name = value_name,
       variable.name = variable_name,
       value.factor = TRUE)
+}
+
+get_incidence_tbl <- function(dtbl, amd_bl_col, amd_fu_col, split_col, digits = 2) {
+  #'
+  #'
+  #'
+  #'
+  #'
+  assertDataTable(dtbl)
+  assertString(split_col)
+  assertString(amd_bl_col)
+  assertString(amd_fu_col)
+  assertInt(digits)
+  assert(amd_bl_col %in% colnames(dtbl))
+  assert(amd_fu_col %in% colnames(dtbl))
+  assert(split_col %in% colnames(dtbl))
+  assert(is.factor(dtbl[[split_col]]))
+  assert(setequal(levels(dtbl[[amd_bl_col]]), c("no_amd", "early_amd", "late_amd")))
+  assert(setequal(levels(dtbl[[amd_fu_col]]), c("no_amd", "early_amd", "late_amd")))
+  
+  case1 <- data.table()
+  case2 <- data.table()
+  case3 <- data.table()
+  case4 <- data.table()
+  for (level in levels(dtbl[[split_col]])){
+    tmp <- get_incidence(dtbl = dtbl[dtbl[[split_col]] == level],
+                  amd_bl_col = amd_bl_col,
+                  amd_fu_col = amd_fu_col)
+    case1 <- rbindlist(list(case1,tmp$case1[, group := as.factor(level)]))
+    case2 <- rbindlist(list(case2,tmp$case2[, group := as.factor(level)]))
+    case3 <- rbindlist(list(case3,tmp$case3[, group := as.factor(level)]))
+    case4 <- rbindlist(list(case4,tmp$case4[, group := as.factor(level)]))
+    
+  }
+  tmp <- get_incidence(dtbl,amd_bl_col, amd_fu_col)
+  case1 <- rbindlist(list(tmp[["case1"]][, group := as.factor("all")], case1))
+  case2 <- rbindlist(list(tmp[["case2"]][, group := as.factor("all")], case2))
+  case3 <- rbindlist(list(tmp[["case3"]][, group := as.factor("all")], case3))
+  case4 <- rbindlist(list(tmp[["case4"]][, group := as.factor("all")], case4))
+  
+  return(list(
+    "case1" = case1,
+    "case2" = case2,
+    "case3" = case3,
+    "case4" = case4
+  ))
+  
+}
+
+get_incidence <- function(dtbl, amd_bl_col, amd_fu_col, digits = 2) {
+  #'
+  #'
+  #'
+  #'
+  #'
+  #'
+  assertDataTable(dtbl)
+  assertString(amd_bl_col)
+  assertString(amd_fu_col)
+  assertInt(digits)
+  assert(amd_bl_col %in% colnames(dtbl))
+  assert(amd_fu_col %in% colnames(dtbl))
+  assert(setequal(levels(dtbl[[amd_bl_col]]), c("no_amd", "early_amd", "late_amd")))
+  assert(setequal(levels(dtbl[[amd_fu_col]]), c("no_amd", "early_amd", "late_amd")))
+  
+  
+  amd_bl <- dtbl[[amd_bl_col]]
+  amd_fu <-dtbl[[amd_fu_col]]
+  
+  # Case 1
+  at_risk <- nrow(dtbl[amd_bl == "no_amd"])
+  events <- nrow(dtbl[(amd_bl == "no_amd" & amd_fu == "early_amd")])
+  case1 <- as.data.table(t(c(
+    "At_Risk" = at_risk,
+    "Events" = events,
+    "Incidence(%)" = round(events / at_risk * 100, digits)
+  )))
+  # Case 2
+  at_risk <- nrow(dtbl[amd_bl == "no_amd"])
+  events <- nrow(dtbl[amd_bl == "no_amd" & amd_fu == "late_amd"])
+  case2 <- as.data.table(t(c(
+    "At_Risk" = at_risk,
+    "Events" = events,
+    "Incidence(%)" = round(events / at_risk * 100, digits)
+  )))
+  # Case 3
+  at_risk <- nrow(dtbl[amd_bl == "no_amd" | amd_bl == "early_amd"])
+  events <- nrow(dtbl[(amd_bl == "no_amd" | amd_bl == "early_amd") & amd_fu == "late_amd"])
+  case3 <- as.data.table(t(c(
+    "At_Risk" = at_risk,
+    "Events" = events,
+    "Incidence(%)" = round(events / at_risk * 100, digits)
+  )))
+  # Case 4
+  at_risk <- nrow(dtbl[amd_bl == "early_amd"])
+  events <- nrow(dtbl[amd_bl == "early_amd" & amd_fu == "late_amd"])
+  case4 <- as.data.table(t(c(
+    "At_Risk" = at_risk,
+    "Events" = events,
+    "Progression(%)" = round(events / at_risk * 100, digits)
+  )))
+  
+  return(list("case1" = case1,
+              "case2" = case2,
+              "case3" = case3,
+              "case4" = case4))
+  
 }
