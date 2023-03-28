@@ -111,24 +111,6 @@ set_groups <- function(dtbl, to.group) {
   return(dtbl)
 }
 
-  
-split_data <- function(dtbl, col) {
-  #'
-  #' Split data into 4 subsets.
-  #'
-  #' 1. NO AMD to early AMD
-  #' 2. NO AMD to late AMD
-  #' 3. No AMD OR early AMD to late AMD 
-  #' 4. Early AMD to late AMD
-  #'
-  #'
-  assertDataTable(dtbl)
-  assertString(col)
-  assert(col %in% colnames(dtbl))
-  
-}
-
-
 split_smoker <- function(dtbl) {
   #'
   #' Split smoking column with levels non_smoker, former_smoker and active_smoker

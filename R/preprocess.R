@@ -98,16 +98,3 @@ rm(list = c(
   "data"
 ))
 #-------------------------------------------------------------------------------
-get_summary_amd_factor(data_fit, cols_summary = c("LT_conti_worst_eye", "LTConti_RE_2_sf", "LTConti_LI_2_sf",
-                                           "PT_conti_worst_eye", "PTConti_RE_2_sf", "PTConti_LI_2_sf"))
-
-get_summary_amd_factor(data_ff4, cols_summary = c("LT_conti_worst_eye", "LTConti_RE_2_sf", "LTConti_LI_2_sf",
-                                           "U3T_conti_worst_eye", "U3TConti_RE_2_sf", "U3TConti_LI_2_sf"))
-
-get_incidence_tbl(data_fit, amd_bl_col = "LT_conti_worst_eye",
-                  amd_fu_col = "PT_conti_worst_eye",
-                  
-                  split_col = "age_group_fit")
-get_incidence_tbl(data_ff4, amd_bl_col = "LT_conti_worst_eye",
-                  amd_fu_col = "U3T_conti_worst_eye",
-                  split_col = "age_group_ff4")
