@@ -1,0 +1,28 @@
+variable_name,variable_type
+lcsex,factor
+ltalteru,numeric
+ll_hdla,numeric
+ll_ldla,numeric
+ltrauchp,factor
+ltsgecat, factor
+ltdiabet, factor
+ltbmi, factor
+ltphact, factor
+ltwhoish, factor
+s4_augen,factor
+LTFerris_RE_2_sf,factor
+LTFerris_LI_2_sf,factor
+LTConti_RE_2_sf,factor
+LTConti_LI_2_sf,factor
+u3talteru,numeric
+ff4_augen,factor
+U3TFerris_RE_2_sf,factor
+U3TFerris_LI_2_sf,factor
+U3TConti_RE_2_sf,factor
+U3TConti_LI_2_sf,factor
+PTALTERU,numeric
+fit_augen,factor
+PTFerris_RE_2_sf,factor
+PTFerris_LI_2_sf,factor
+PTConti_RE_2_sf,factor
+PTConti_LI_2_sf,factor
