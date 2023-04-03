@@ -2,109 +2,68 @@
 title: "KORA-AMD"
 author: "Matina Kasiouri, Sven Morlock, Leo Höltkemeyer"
 date: "2023-03-20"
-output: html_document
+output:
+  pdf_document:
+    includes:
+      header-includes:
+      - \usepackage{booktabs}
+      - \usepackage{longtable}
+      - \usepackage{array}
+      - \usepackage{multirow}
+      - \usepackage{wrapfig}
+      - \usepackage{float}
+      - \usepackage{colortbl}
+      - \usepackage{pdflscape}
+      - \usepackage{tabu}
+      - \usepackage{threeparttable}
+      - \usepackage{threeparttablex}
+      - \usepackage[normalem]{ulem}
+      - \usepackage{makecell}
+      - \usepackage{xcolor}
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+options(warn = -1) 
 ```
 
-```{r}
+```{r preliminaries, warning=FALSE}
 source("preprocess.R")
 library(kableExtra)
 ```
 
+```{r define-functions, echo = FALSE, include = FALSE}
+my_kable <- function(dtbl, caption, booktabs = TRUE, col.names = NULL, latex_options = "hold_position") {
+  #'
+  #'
+  #'
+  #'
+  assertDataTable(dtbl)
+  kable(dtbl,
+        caption = caption,
+        booktabs = booktabs,
+        col.names = col.names)
+} %>%  kable_styling(latex_options = latex_options)
+```
+
 # I Deskriptive Statstik
 
-## FIT
-```{r}
-kable(
-  get_summary_amd_factor(data_fit, cols_summary = c("LT_conti_worst_eye", "LTConti_RE_2_sf", "LTConti_LI_2_sf",
-                                           "PT_conti_worst_eye", "PTConti_RE_2_sf", "PTConti_LI_2_sf"))
-)
-```
-```{r}
-incidence <- get_incidence_tbl(data_fit, amd_bl_col = "LT_conti_worst_eye",
-                  amd_fu_col = "PT_conti_worst_eye",
-                  split_col = "age_group_fit")
-```
-### Fall 1
-```{r}
-kable(
-  incidence[["case1"]]
-)
-```
-### Fall 2
-```{r}
-kable(
-  incidence[["case2"]]
-)
-```
-### Fall 3
-```{r}
-kable(
-  incidence[["case3"]]
-)
-```
-### Fall 4
-```{r}
-kable(
-  incidence[["case4"]]
-)
+```{r fit-amd-bl}
+as.data.table(table(data_fit[, LT_conti_worst_eye], useNA = "always")) %>% 
+  my_kable(caption = "FIT: AMD at BL")
 ```
 
-## FF4
-```{r}
-kable(
-  get_summary_amd_factor(data_ff4, cols_summary = c("LT_conti_worst_eye", "LTConti_RE_2_sf", "LTConti_LI_2_sf",
-                                           "U3T_conti_worst_eye", "U3TConti_RE_2_sf", "U3TConti_LI_2_sf")),
-  "html"
-)
+```{r fit-amd-fu}
+as.data.table(table(data_fit[, PT_conti_worst_eye],useNA = "always")) %>% 
+  my_kable(caption = "FIT: AMD at FU")
 ```
 
-```{r}
-incidence <- get_incidence_tbl(data_ff4, amd_bl_col = "LT_conti_worst_eye",
-                  amd_fu_col = "U3T_conti_worst_eye",
-                  split_col = "age_group_ff4")
+```{r fit-amd-fu-1}
+as.data.table(table(data_fit[LT_conti_worst_eye == "no_amd", PT_conti_worst_eye], useNA = "always")) %>% 
+  my_kable(caption = "FIT: AMD at FU (no AMD at BL")
 ```
 
-### Fall 1
-```{r}
-kable(
-  incidence[["case1"]]
-)
-```
-### Fall 2
-```{r}
-kable(
-  incidence[["case2"]]
-)
-```
-### Fall 3
-```{r}
-kable(
-  incidence[["case3"]]
-)
-```
-### Fall 4
-```{r}
-kable(
-  incidence[["case4"]]
-)
-```
-
-# II Modellierung
-
-```{r}
-```
-
-```{r}
-```
-
-# III Ergebnisse
-
-```{r}
-```
-
-```{r}
+```{r fit-amd-fu-2}
+as.data.table(table(data_fit[LT_conti_worst_eye == "no_amd" | LT_conti_worst_eye == "early", PT_conti_worst_eye],useNA = "always")) %>% 
+  my_kable(caption = "FIT: AMD at FU (no AMD or early AMD at BL)")
 ```

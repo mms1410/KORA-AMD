@@ -3,9 +3,10 @@ library(haven)
 library(data.table)
 library(checkmate)
 library(forcats)
+library(this.path)  # path via rstudioapi not available if called via terminal
 #-------------------------------------------------------------------------------
-root_folder <- rstudioapi::getSourceEditorContext()$path
-root_folder <- dirname(dirname(root_folder))
+root_folder <- this.path::this.dir()
+root_folder <- dirname(root_folder)
 data_folder <- file.path(root_folder, "data")
 r_folder <- file.path(root_folder, "R")
 assets_folder <- file.path(root_folder, "assets")
@@ -21,6 +22,7 @@ assertFileExists(path_dictionary)
 assertFileExists(file.path(r_folder, "functions.R"))
 #-------------------------------------------------------------------------------
 data <- haven::read_sav(file = path_data)
+
 data <- as.data.table(data)
 data_dictionary <- fread(path_dictionary)
 source(file.path(r_folder, "functions.R"))
@@ -59,7 +61,7 @@ to_group <- list(
   "PTConti_LI_2_sf" = def_amd_continental
 )
 
-data <- set_groups(data, to_group)
+data <- set_groups(data, to_group, ordered = TRUE) # ordered==True needed to detect worst eye
 data$lcsex <- fct_recode(data[["lcsex"]], !!!c("M" = "1", "F" = "2"))
 data$ltrauchp <- fct_recode(data[["ltrauchp"]], !!!c("non_smoker" = "0",
                                                      "non_smoker" = "1",

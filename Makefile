@@ -1,11 +1,11 @@
 SOURCE = R/report.Rmd
-TARGET = assets/report.html
+TARGET = assets/report.pdf
 
 all: $(TARGET)
 
 $(TARGET) : $(SOURCE)
-	Rscript -e 'rmarkdown::render("$<")' # $< -> first prerequisite
-	mv R/report.html $(TARGET)
+	Rscript -e  "rmarkdown::render('R/report.Rmd')" # $< -> first prerequisite
+	mv R/report.pdf assets/report.pdf
 
 clean:
 	rm $(TARGET)

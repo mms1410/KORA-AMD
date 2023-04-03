@@ -6,5 +6,7 @@ R/*.tex
 R/*.pdf
 R/*.html
 assets/graphics/*
+assets/*.pdf
+assets/*.html
 README.html
 
