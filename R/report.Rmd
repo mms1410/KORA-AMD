@@ -6,6 +6,7 @@ output:
   pdf_document:
     includes:
       header-includes:
+      - \usepackage{caption}
       - \usepackage{booktabs}
       - \usepackage{longtable}
       - \usepackage{array}
@@ -61,7 +62,7 @@ as.data.table(table(data_fit[, PT_conti_worst_eye],useNA = "always")) %>%
 
 ```{r fit-amd-fu-1}
 as.data.table(table(data_fit[LT_conti_worst_eye == "no_amd", PT_conti_worst_eye], useNA = "always")) %>% 
-  my_kable(caption = "FIT: AMD at FU (no AMD at BL")
+  my_kable(caption = "FIT: AMD at FU (no AMD at BL)")
 ```
 
 ```{r fit-amd-fu-2}
@@ -85,12 +86,12 @@ incidences_fit[["case1"]] %>%
 
 ```{r fit-incidence-case2}
 incidences_fit[["case2"]] %>% 
-  my_kable(caption = "Cummulative incidence of late AMD (definition1)", col.names = NA)
+  my_kable(caption = "Cummulative incidence of late AMD (definition 1)", col.names = NA)
 ```
 
 ```{r fit-incidence-case3}
 incidences_fit[["case3"]] %>% 
-  my_kable(caption= "Cummulative incidence of late AMD (definition)", col.names = NA)
+  my_kable(caption= "Cummulative incidence of late AMD (definition 2)", col.names = NA)
 ```
 
 ```{r fit-incidence-case4}
