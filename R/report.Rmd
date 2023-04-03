@@ -48,6 +48,7 @@ my_kable <- function(dtbl, caption, booktabs = TRUE, col.names = NULL, latex_opt
 
 # I Deskriptive Statstik
 
+### §1 General
 ```{r fit-amd-bl}
 as.data.table(table(data_fit[, LT_conti_worst_eye], useNA = "always")) %>% 
   my_kable(caption = "FIT: AMD at BL")
@@ -66,4 +67,33 @@ as.data.table(table(data_fit[LT_conti_worst_eye == "no_amd", PT_conti_worst_eye]
 ```{r fit-amd-fu-2}
 as.data.table(table(data_fit[LT_conti_worst_eye == "no_amd" | LT_conti_worst_eye == "early", PT_conti_worst_eye],useNA = "always")) %>% 
   my_kable(caption = "FIT: AMD at FU (no AMD or early AMD at BL)")
+```
+
+### §2 Incidence and Progression
+
+```{r fit-incidence, echo = FALSE, include = FALSE}
+incidences_fit <- get_incidence_tbl(data_fit,
+                  amd_bl_col = "LT_conti_worst_eye",
+                  amd_fu_col = "PT_conti_worst_eye",
+                  split_col = "age_group_fit")
+```
+
+```{r fit-incidence-case1}
+incidences_fit[["case1"]] %>% 
+  my_kable(caption = "Cummulative incidence of early AMD", col.names = NA)
+```
+
+```{r fit-incidence-case2}
+incidences_fit[["case2"]] %>% 
+  my_kable(caption = "Cummulative incidence of late AMD (definition1)", col.names = NA)
+```
+
+```{r fit-incidence-case3}
+incidences_fit[["case3"]] %>% 
+  my_kable(caption= "Cummulative incidence of late AMD (definition)", col.names = NA)
+```
+
+```{r fit-incidence-case4}
+incidences_fit[["case4"]] %>% 
+  my_kable(caption = "Cummulative progression from early to late AMD", col.names = NA)
 ```
