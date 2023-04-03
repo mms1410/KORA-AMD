@@ -76,7 +76,7 @@ set_age_groups <- function(dtbl, named.list.ff4, named.list.fit, col.age = "ltal
   return(dtbl)
 }
 
-set_groups <- function(dtbl, to.group) {
+set_groups <- function(dtbl, to.group, ordered = TRUE) {
   #'
   #' Set groups of analysis.
   #' 
@@ -104,7 +104,7 @@ set_groups <- function(dtbl, to.group) {
     col.levels <-  levels(col)
     assert(all(col.levels %in% entry))
     col <- fct_recode(col, !!!entry)
-    col <- factor(col, ordered = TRUE)
+    col <- factor(col, ordered = ordered)
     dtbl[[groupname]] <- col
   }
   
@@ -312,4 +312,43 @@ get_incidence <- function(dtbl, amd_bl_col, amd_fu_col, digits = 2) {
               "case3" = case3,
               "case4" = case4))
   
+}
+
+subset_simplify_factor <- function(dtbl, score_bl = "LT_conti_worst_eye", score_bl_levels, score_fu, score_fu_levels) {
+  #'
+  #'
+  #' @param dtbl (data.table): data set.
+  #' @param score_bl (chr): Column name with considered score.
+  #' @param score_bl_levels (chr): Indicating selected amd levels. If named factor levels can be reordered.
+  #' @param score_fu (chr): Column name with considered score.
+  #' @param score_fu_levels (chr): Indicating selected amd levels. If named factor levels can be reordered.
+  #'
+  #' @return data.table: subsetted data table.
+  #'
+  assertDataTable(dtbl)
+  assert(all(score_bl %in% colnames(dtbl)))
+  assert(all(score_fu %in% colnames(dtbl)))
+  assertFactor(dtbl[[score_bl]])
+  assertFactor(dtbl[[score_fu]])
+  assert(all(score_bl_levels %in% levels(dtbl[[score_bl]])))
+  assert(all(score_fu_levels %in% levels(dtbl[[score_fu]])))
+  
+  
+  ## recode (if applicable)
+  if (test_named(score_bl_levels)) {
+    dtbl[[score_bl]] <- fct_recode(dtbl[[score_bl]], !!!score_bl_levels)
+    score_bl_levels <- unique(names(score_bl_levels))
+  }
+  if (test_named(score_fu_levels)) {
+    dtbl[[score_fu]] <- fct_recode(dtbl[[score_fu]], !!!score_fu_levels)
+    score_fu_levels <- unique(names(score_fu_levels))
+  }
+  ## subset
+  dtbl <- dtbl[dtbl[[score_bl]] %in% score_bl_levels]
+  dtbl <- dtbl[dtbl[[score_fu]] %in% score_fu_levels]
+  ## simplify factor levels
+  dtbl[[score_bl]] <- fct_drop(dtbl[[score_bl]])
+  dtbl[[score_fu]] <- fct_drop(dtbl[[score_fu]])
+  
+  return(dtbl)
 }

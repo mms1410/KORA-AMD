@@ -1,7 +1,10 @@
 .Rhistory
 data/*.sav
 archive/
+R/*.log
+R/*.tex
 R/*.pdf
 R/*.html
 assets/graphics/*
 README.html
+
