@@ -352,3 +352,14 @@ subset_simplify_factor <- function(dtbl, score_bl = "LT_conti_worst_eye", score_
   
   return(dtbl)
 }
+
+get_summary_table <- function(smry_list) {
+  #'
+  #'
+  #'
+  #'
+  #'
+  #'
+  #'
+  
+}

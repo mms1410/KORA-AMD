@@ -14,6 +14,15 @@ assets_folder <- file.path(root_folder, "assets")
 path_data <- file.path(data_folder, "20230222_KORA_S4_FF4_FIT_StaBLab_with_riskfactors.sav")
 path_dictionary <- file.path(data_folder, "vars_to_select")
 source(file.path(r_folder, "preprocess.R"))
+rm(list = c(
+  "age_groups_ff4",
+  "age_groups_fit",
+  "data_dictionary",
+  "to_group",
+  "def_amd_ferris",
+  "def_amd_continental",
+  "data"
+))
 #-------------------------------------------------------------------------------
 
 # Case 1: Incidence early AMD

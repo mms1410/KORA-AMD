@@ -1,0 +1,7 @@
+variable,no_amd,early_amd,late_amd,n,NA,total
+LT_conti_worst_eye,484,22,0,506,0,506
+LTConti_RE_2_sf,480,13,0,493,13,506
+LTConti_LI_2_sf,491,10,0,501,5,506
+PT_conti_worst_eye,448,50,8,506,0,506
+PTConti_RE_2_sf,455,32,3,490,16,506
+PTConti_LI_2_sf,439,35,7,481,25,506

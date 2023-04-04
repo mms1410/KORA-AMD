@@ -69,7 +69,7 @@ as.data.table(table(data_fit[LT_conti_worst_eye == "no_amd", PT_conti_worst_eye]
 as.data.table(table(data_fit[LT_conti_worst_eye == "no_amd" | LT_conti_worst_eye == "early", PT_conti_worst_eye],useNA = "always")) %>% 
   my_kable(caption = "FIT: AMD at FU (no AMD or early AMD at BL)")
 ```
-
+\newpage
 ### §2 Incidence and Progression
 
 ```{r fit-incidence, echo = FALSE, include = FALSE}

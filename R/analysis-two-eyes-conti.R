@@ -15,3 +15,4 @@ path_data <- file.path(data_folder, "20230222_KORA_S4_FF4_FIT_StaBLab_with_riskf
 path_dictionary <- file.path(data_folder, "vars_to_select")
 source(file.path(r_folder, "preprocess.R"))
 #-------------------------------------------------------------------------------
+wide_to_long(data, study = "fit", score = "continental")

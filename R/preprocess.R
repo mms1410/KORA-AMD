@@ -61,7 +61,10 @@ to_group <- list(
   "PTConti_LI_2_sf" = def_amd_continental
 )
 
-data <- set_groups(data, to_group, ordered = TRUE) # ordered==True needed to detect worst eye
+## note: warning might be triggered if some levels are no contained in group.
+## here original level of 3 was not present in older age group.
+## ordered==True needed to detect worst eye later.
+data <- set_groups(data, to_group, ordered = TRUE)
 data$lcsex <- fct_recode(data[["lcsex"]], !!!c("M" = "1", "F" = "2"))
 data$ltrauchp <- fct_recode(data[["ltrauchp"]], !!!c("non_smoker" = "0",
                                                      "non_smoker" = "1",
@@ -90,13 +93,4 @@ data_ff4$time_bl_fu <- data_ff4$u3talteru - data_ff4$ltalteru
 duplicate_id <- data_fit$person_id[data_fit$person_id %in% data_ff4$person_id]
 data_ff4 <- data_ff4[!person_id %in% duplicate_id]
 #-------------------------------------------------------------------------------
-rm(list = c(
-  "age_groups_ff4",
-  "age_groups_fit",
-  "data_dictionary",
-  "to_group",
-  "def_amd_ferris",
-  "def_amd_continental",
-  "data"
-))
 #-------------------------------------------------------------------------------
