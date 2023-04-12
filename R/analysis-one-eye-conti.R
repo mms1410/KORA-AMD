@@ -24,6 +24,8 @@ rm(list = c(
   "data"
 ))
 #-------------------------------------------------------------------------------
+#                                 subset data
+#-------------------------------------------------------------------------------
 
 # Case 1: Incidence early AMD
 
@@ -51,8 +53,9 @@ data_fit_2.2 <- subset_simplify_factor(data_fit,
                                       score_fu_levels = c(no_amd = "no_amd", late_amd = "late_amd", late_amd = "early_amd"))
 
 # Case 3: Incidence late AMD among no AMD at BL or early AMD at BL (definition 2)
+## create dummy variable indicating if early or no amd at baseline
 data_fit_3 <- copy(data_fit)
-data_fit_3[, amd_bl := fct_recode(LT_conti_worst_eye, !!!c(early = "early_amd", no = "no_amd"))]
+data_fit_3[, amd_bl := LT_conti_worst_eye]
 data_fit_3[, amd_bl := fct_drop(amd_bl)]
 data_fit_3 <- subset_simplify_factor(data_fit_3,
                                      score_bl_levels = c(no_amdD2 = "no_amd", no_amdD2 = "early_amd"),
@@ -65,13 +68,15 @@ data_fit_4 <- subset_simplify_factor(data_fit,
                                      score_fu = "PT_conti_worst_eye",
                                      score_fu_levels = c("early_amd", "late_amd"))
 #-------------------------------------------------------------------------------
+#                                 fit model
+#-------------------------------------------------------------------------------
 ## Case 1
 model_fit_1 <- glm(PT_conti_worst_eye ~ ltalteru + lcsex + time_bl_fu + ltrauchp + ll_hdla,
                    data = data_fit_1,
                    family = binomial(link="logit"))
 
 model_fit_1.2 <- glm(PT_conti_worst_eye ~ ltalteru + lcsex + time_bl_fu + ltrauchp + ll_hdla,
-                     data = data_fit_1.1,
+                     data = data_fit_1.2,
                      family = binomial(link="logit"))
 ## Case 2
 model_fit_2 <- glm(PT_conti_worst_eye ~ ltalteru + lcsex + time_bl_fu + ltrauchp + ll_hdla,
@@ -91,6 +96,8 @@ model_fit_3 <- glm(PT_conti_worst_eye ~ ltalteru + lcsex + time_bl_fu + ltrauchp
 model_fit_4 <- glm(PT_conti_worst_eye ~ ltalteru + lcsex + time_bl_fu + ltrauchp + ll_hdla,
                   data = data_fit_4,
                   family = binomial(link="logit"))
+#-------------------------------------------------------------------------------
+#                               get results
 #-------------------------------------------------------------------------------
 exp(c(coef(model_fit_1), confint(model_fit_1)))
 exp(coef(model_fit_1.2))
@@ -116,5 +123,5 @@ confint_smry <- as.data.table(rbind(
   c(exp(confint(model_fit_4))[-1,][,2], "group" = "progression_late_amd", "confint" = "upper")
 ))
 
-
-
+dcast(melt(confint_smry, id.vars = "group"), variable ~ group)
+transpose(confint_smry)

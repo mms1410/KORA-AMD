@@ -81,16 +81,30 @@ data$PT_ferris_worst_eye <- pmax(data$PTFerris_LI_2_sf, data$PTFerris_RE_2_sf, n
 data$U3T_conti_worst_eye <- pmax(data$U3TConti_LI_2_sf, data$U3TConti_RE_2_sf, na.rm = TRUE)
 data$U3T_ferris_worst_eye <- pmax(data$U3TFerris_LI_2_sf, data$U3TFerris_RE_2_sf, na.rm = TRUE)
 #-------------------------------------------------------------------------------
+## remove factor ordering
+col_names <- names(sapply(data, is.factor))
+data[, (col_names) := lapply(.SD, function(x){factor(x, ordered = FALSE)}), .SDcols = col_names]
+rm(list = c("col_names"))
+data$ltalteru <- as.numeric(data$ltalteru)
+data$ll_hdla <- as.numeric(data$ll_hdla)
+data$PTALTERU <- as.numeric(data$PTALTERU)
+data$u3talteru <- as.numeric(data$u3talteru)
+
+data$ltalteru  <- data$ltalteru - mean(data$ltalteru, na.rm = TRUE)
+data$ll_hdla <- data$ll_hdla -mean(data$ll_hdla, na.rm = TRUE)
+data$PTALTERU <- data$PTALTERU -mean(data$PTALTERU, na.rm = TRUE)
+data$u3talteru <- data$u3talteru -mean(data$u3talteru, na.rm = TRUE)
+#-------------------------------------------------------------------------------
 # FIT: 506 & FF4: 350
 # we know that if ferris score is na then also conti score and vice versa.
 data_fit <- data[!is.na(LT_ferris_worst_eye) & !is.na(PT_ferris_worst_eye)]
 data_ff4 <- data[!is.na(LT_ferris_worst_eye) & !is.na(U3T_ferris_worst_eye)] 
 data_fit[, grep("^u3t|ff4", colnames(data_fit), ignore.case = TRUE) := NULL]
-data_fit$time_bl_fu <- data_fit$PTALTERU - data_fit$ltalteru
 data_ff4[, grep("^PT|fit", colnames(data_ff4), ignore.case = TRUE) := NULL]
+
 data_ff4$time_bl_fu <- data_ff4$u3talteru - data_ff4$ltalteru
+data_fit$time_bl_fu <- data_fit$PTALTERU - data_fit$ltalteru
 
 duplicate_id <- data_fit$person_id[data_fit$person_id %in% data_ff4$person_id]
 data_ff4 <- data_ff4[!person_id %in% duplicate_id]
-#-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------

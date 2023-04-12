@@ -170,41 +170,87 @@ wide_to_long <- function(dtbl, study, score) {
   assertChoice(study, c("fit", "ff4"))
   assertChoice(score, c("ferris", "continental"))
   
-  fit_eyes_ferris <- c("PTFerris_RE_2_sf", "PTFerris_LI_2_sf")
-  fit_eyes_conti <- c("PTConti_RE_2_sf", "PTConti_LI_2_sf")
-  ff4_eyes_ferris <- c("U3TFerris_RE_2_sf", "U3TFerris_LI_2_sf")
-  ff4_eyes_conti <- c("U3TConti_RE_2_sf", "U3TConti_LI_2_sf")
+  # AMD at follow up
+  fit_eyes_ferris_fu <- c("PTFerris_RE_2_sf", "PTFerris_LI_2_sf")
+  fit_eyes_conti_fu <- c("PTConti_RE_2_sf", "PTConti_LI_2_sf")
+  ff4_eyes_ferris_fu <- c("U3TFerris_RE_2_sf", "U3TFerris_LI_2_sf")
+  ff4_eyes_conti_fu <- c("U3TConti_RE_2_sf", "U3TConti_LI_2_sf")
+  
+  # AMD at baseline (same name for ff4 and fit)
+  fit_eyes_ferris_bl <- c("LTFerris_RE_2_sf", "LTFerris_LI_sf")
+  ff4_eyes_ferris_bl <- fit_eyes_ferris_bl
+  fit_eyes_conti_bl <- c("LTConti_RE_2_sf", "LTConti_LI_2_sf")
+  ff4_eyes_conti_bl <- fit_eyes_conti_bl
+  
+  variable_name_bl <- "eye_score_name_bl"
+  variable_name_fu <- "eye_score_name_fu"
+  value_name_bl <- "amd_status_bl"
+  value_name_fu <- "amd_status_fu"
   
   if (study == "fit") {
-    value_name <- "PT_amd_status"
-    variable_name <- "PT_eye_score_name"
     if (score == "ferris") {
-      measure_vars <- fit_eyes_ferris
-      assert(all(measure_vars %in% colnames(dtbl)))
+      measure_vars_fu <- fit_eyes_ferris_fu
+      measure_vars_bl <- fit_eyes_ferris_bl
     } else {
-      measure_vars <-  fit_eyes_conti
-      assert(all(measure_vars %in% colnames(dtbl)))
+      measure_vars_fu <-  fit_eyes_conti_fu
+      measure_vars_bl <- fit_eyes_conti_bl
     }
   } else {
-    value_name <- "FF4_amd_status"
-    variable_name <- "FF4_amd_eye_sore_name"
     if (score == "ferris") {
-      measure_vars <- ff4_eyes_ferris
-      assert(all(measure_vars %in% colnames(dtbl)))
+      measure_vars_fu <- ff4_eyes_ferris_fu
+      measure_vars_bl <- ff4_eye_ferris_bl
     } else {
-      measure_vars <- ff4_eyes_conti
-      assert(all(measure_vars %in% colnames(dtbl)))
+      measure_vars_fu <- ff4_eyes_conti_fu
+      measure_vars_bl <- ff4_eyes_conti_bl
     }
   }
-  ## if not measure var, then id var
-  id_vars <- colnames(dtbl)[!(colnames(dtbl) %in% measure_vars)]
+  assert(all(measure_vars_fu %in% colnames(dtbl)))
+  assert(all(measure_vars_bl %in% colnames(dtbl)))
   
-  melt(data = dtbl,
-      id.vars = id_vars,
-      measure.vars = measure_vars,
-      value.name = value_name,
-      variable.name = variable_name,
-      value.factor = TRUE)
+  ## melt baseline
+  id_vars <- colnames(dtbl)[!(colnames(dtbl) %in% measure_vars_bl)]
+  dtbl <- melt(data = dtbl,
+               id.vars = id_vars,
+               measure.vars = measure_vars_bl,
+               value.name = value_name_bl,
+               variable.name = variable_name_bl,
+               value.factor = TRUE)
+  ## melt follow up
+  id_vars <- colnames(dtbl)[!(colnames(dtbl) %in% measure_vars_fu)]
+  dtbl <- melt(data = dtbl,
+               id.vars = id_vars,
+               measure.vars = measure_vars_fu,
+               value.name = value_name_fu,
+               variable.name = variable_name_fu,
+               value.factor = TRUE)
+  ## remove worst eye results
+  to_remove <- colnames(dtbl)[grep(pattern = "worst", x = colnames(dtbl))]
+  dtbl[, (to_remove) := NULL]
+
+  ## 2 consecutive melts created all 4 combinations for R/L eye at BL/FU
+  ## retain only RR LL combination
+  ## remove score not used in melt
+  if (score == "continental") {
+    to_remove <- colnames(dtbl)[grep(pattern = "ferris", x = colnames(dtbl), ignore.case = T)]
+    dtbl[[variable_name_bl]] <- dtbl[[variable_name_bl]] %>% fct_collapse(R = "LTConti_RE_2_sf", L = "LTConti_LI_2_sf")
+    if (study == "fit") {
+      dtbl[[variable_name_fu]] <- dtbl[[variable_name_fu]] %>% fct_collapse(R = "PTConti_RE_2_sf", L = "PTConti_LI_2_sf")
+    } else {
+      dtbl[[variable_name_fu]] <- dtbl[[variable_name_fu]] %>% fct_collapse(R = "U3TConti_RE_2_sf", L = "U3TConti_LI_2_sf")
+    }
+  } else {
+    to_remove <- colnames(dtbl)[grep(pattern = "conti", x = colnames(dtbl), ignore.case = T)]
+    dtbl[[variable_name_bl]] <- dtbl[[variable_name_bl]] %>% fct_collapse(R = "LTFerris_RE_2_sf", L = "LTFerris_LI_2_sf")
+    if (study == "fit") {
+      dtbl[[variable_name_fu]] <- dtbl[[variable_name_fu]] %>% fct_collapse(R = "PTFerris_RE_2_sf", L = "PTFerris_LI_2_sf")
+    } else {
+      dtbl[[variable_name_fu]] <- dtbl[[variable_name_fu]] %>% fct_collapse(R = "U3TFerris_RE_2_sf", L = "U3TFerris_LI_2_sf") 
+    }
+  }
+  dtbl <- dtbl[dtbl[[variable_name_fu]] == dtbl[[variable_name_bl]]]
+  to_remove <- c(to_remove, variable_name_fu)
+  dtbl[, (to_remove) := NULL]
+  return(dtbl)
 }
 
 get_incidence_tbl <- function(dtbl, amd_bl_col, amd_fu_col, split_col, digits = 2) {
@@ -353,13 +399,19 @@ subset_simplify_factor <- function(dtbl, score_bl = "LT_conti_worst_eye", score_
   return(dtbl)
 }
 
-get_summary_table <- function(smry_list) {
+center_variables <- function(dtbl, variables){
   #'
   #'
+  #' @param dtbl (data.table): Input data table.
+  #' @param variables (chr): Variable names to be centered.
   #'
-  #'
-  #'
-  #'
-  #'
+  #' @return data.table: Datatable with centered variables.
+  assertDataTable(dtbl)
+  assertCharacter(variables)
+  assert(all(variables %in% colnames(dtbl)))
+  for (variable in variables) {
+    assertNumeric(dtbl[[variable]])
+  }
+  
   
 }
