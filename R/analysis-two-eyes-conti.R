@@ -1,5 +1,4 @@
 #-------------------------------------------------------------------------------
-rm(list = ls())
 library(haven)
 library(data.table)
 library(checkmate)
@@ -14,16 +13,7 @@ r_folder <- file.path(root_folder, "R")
 assets_folder <- file.path(root_folder, "assets")
 path_data <- file.path(data_folder, "20230222_KORA_S4_FF4_FIT_StaBLab_with_riskfactors.sav")
 path_dictionary <- file.path(data_folder, "vars_to_select")
-source(file.path(r_folder, "preprocess.R"))
-rm(list = c(
-  "age_groups_ff4",
-  "age_groups_fit",
-  "data_dictionary",
-  "to_group",
-  "def_amd_ferris",
-  "def_amd_continental",
-  "data"
-))
+source(file.path(r_folder, "functions.R"))
 #-------------------------------------------------------------------------------
 #                                 subset data
 #-------------------------------------------------------------------------------
@@ -79,10 +69,11 @@ summary(model_glmer_fit_1)
 #-------------------------------------------------------------------------------
 library(gee)
 data_fit_1$amd_status_fu <- ifelse(data_fit_1$amd_status_fu == "no_amd", 0, 1)
-
 model_gee_fit_1 <- gee(formula = amd_status_fu ~ ltalteru + lcsex + ltrauchp + ll_hdla + time_bl_fu,
     id = person_id,
     family = "binomial",
     corstr = "exchangeable",
     data = data_fit_1)
-summary(model_gee_fit_1)
+#-------------------------------------------------------------------------------
+#                                 ALR Model
+#-------------------------------------------------------------------------------

@@ -17,8 +17,7 @@ subset_data <- function(dtbl, data.dictionary, age.groups.fit, age.groups.ff4) {
   #' @param age.group.fit (list):
   #' @param age.group.ff4 (list):
   #'
-  #' @returns data.table: preprocessed data.table object
-  
+  #' @return data.table: preprocessed data.table object
   assertDataTable(dtbl)
   assertDataTable(data.dictionary, any.missing = FALSE)
   assert(all(c("variable_name", "variable_type") %in% colnames(data.dictionary)))
@@ -60,7 +59,6 @@ set_age_groups <- function(dtbl, named.list.ff4, named.list.fit, col.age = "ltal
   #' @param named.list.fit (chr):
   #'
   #' @return data.table:
-  #'
   assertDataTable(dtbl)
   assert(col.age %in% colnames(dtbl))
   assertList(named.list.ff4)
@@ -96,6 +94,11 @@ set_groups <- function(dtbl, to.group, ordered = TRUE) {
   #'     4: late AMD
   #'     NA
   #'
+  #' @param dtbl (data.tabe):
+  #' @param to.group (chr):
+  #' @param ordered (logical):
+  #'
+  #' @return data.table:
   assert(all(names(to.group) %in% colnames(dtbl)))
   
   for (groupname in names(to.group)) {
@@ -111,15 +114,6 @@ set_groups <- function(dtbl, to.group, ordered = TRUE) {
   return(dtbl)
 }
 
-split_smoker <- function(dtbl) {
-  #'
-  #' Split smoking column with levels non_smoker, former_smoker and active_smoker
-  #' into two columns: non_smoker vs. active smoker and non_smoker vs. former_smoker
-  #'
-  
-  # TODO
-}
-  
 get_summary_amd_factor <- function(dtbl, cols_summary = "") {
   #'
   #'
@@ -255,10 +249,15 @@ wide_to_long <- function(dtbl, study, score) {
 
 get_incidence_tbl <- function(dtbl, amd_bl_col, amd_fu_col, split_col, digits = 2) {
   #'
+  #' Create incidence table by calling 'get_incidence' for each level in 'split_col'. 
   #'
+  #' @param dtbl (data.table):
+  #' @param amd_bl_col (chr):
+  #' @param amd_fu_col (chr):
+  #' @param split_col (chr):
+  #' @param digits (int):
   #'
-  #'
-  #'
+  #' @return data.table: incidence numbers in data.table
   assertDataTable(dtbl)
   assertString(split_col)
   assertString(amd_bl_col)
@@ -302,11 +301,14 @@ get_incidence_tbl <- function(dtbl, amd_bl_col, amd_fu_col, split_col, digits = 
 
 get_incidence <- function(dtbl, amd_bl_col, amd_fu_col, digits = 2) {
   #'
+  #' Create incidence table.
   #'
+  #' @param dtbl (data.table):
+  #' @param amd_bl_col (chr):
+  #' @param amd_fu_col (chr):
+  #' @param digits (int):
   #'
-  #'
-  #'
-  #'
+  #' @return data.table: incidence numbers in data.table
   assertDataTable(dtbl)
   assertString(amd_bl_col)
   assertString(amd_fu_col)
@@ -362,6 +364,7 @@ get_incidence <- function(dtbl, amd_bl_col, amd_fu_col, digits = 2) {
 
 subset_simplify_factor <- function(dtbl, score_bl = "LT_conti_worst_eye", score_bl_levels, score_fu, score_fu_levels) {
   #'
+  #' Create subset of datatable based on target columns for BL and FU (score_<..>)and its corresponding values (score_<..>_levels).
   #'
   #' @param dtbl (data.table): data set.
   #' @param score_bl (chr): Column name with considered score.
@@ -369,8 +372,7 @@ subset_simplify_factor <- function(dtbl, score_bl = "LT_conti_worst_eye", score_
   #' @param score_fu (chr): Column name with considered score.
   #' @param score_fu_levels (chr): Indicating selected amd levels. If named factor levels can be reordered.
   #'
-  #' @return data.table: subsetted data table.
-  #'
+  #' @return data.table: subset data table.
   assertDataTable(dtbl)
   assert(all(score_bl %in% colnames(dtbl)))
   assert(all(score_fu %in% colnames(dtbl)))
@@ -401,6 +403,7 @@ subset_simplify_factor <- function(dtbl, score_bl = "LT_conti_worst_eye", score_
 
 center_variables <- function(dtbl, variables){
   #'
+  #' Center variables in given datatable.
   #'
   #' @param dtbl (data.table): Input data table.
   #' @param variables (chr): Variable names to be centered.
@@ -414,4 +417,25 @@ center_variables <- function(dtbl, variables){
   }
   
   
+}
+
+tidy_gee <- function(gee_model, exponentiate = FALSE) {
+  #'
+  #' Create tidy coefficient output for fitted gee model.
+  #'
+  #' @param gee_model (gee, glm): fitted gee model.
+  #' @param exponentiate (logical): if TRUE coefficients will be taken to power of e.
+  #'
+  #'
+  #' @return data.table: table of coefficients.
+  assertClass(gee_model, c("gee", "glm"))
+  assertLogical(exponentiate)
+  
+  smry <- summary(gee_model)
+  dtbl <- data.table(smry$coefficients, keep.rownames = TRUE)
+  if (exponentiate) {
+    cols_numeric <- names(sapply(dtbl, is.numeric))[sapply(dtbl, is.numeric)]
+    dtbl[, (cols_numeric) := lapply(.SD, exp), .SDcols = cols_numeric]
+  }
+  return(dtbl)
 }

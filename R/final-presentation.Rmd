@@ -4,25 +4,43 @@ author: "Matina Kasiouri, Sven Morlock, Leo Höltkemeyer"
 date: "2023-04-04"
 output:
   beamer_presentation: default
+  includes:
+    header-includes:
+      - \usepackage[]{algorithm2e}
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-## Introduction
+## Einführung
 
 
-## Logistic regression
+## Logistische regression
 - $log(p/(1-p)) = h(\mathbf{\beta} \mathbf{X_{i}}) + \epsilon_{i}$
 - $y_{i} \in \{0,1\}$
 - $\epsilon_{i} \sim Binomial$
 
 
-## Marginal Model
+## Marginales Modell I
+### Motivation
+- Berechnung der gemeinsamen Dichte nicht einfach
+- GEE1 Liang/Zeger (1986)
+- Lipsitz, Laird, and Harrington (1991)
 
-- dependencies are treated as nuisance
-- average over population
+
+
+## Marginales Modell II
+
+- Korrelation Nuisance Parameter
+  - "Arbeitsvarianz"
+  - Keine formalen Methoden wie z.B LR-Test, Wald etc...
+- Korrelationsstruktur muss nicht korrekt spezifiziert sein
+  - Regressionsparamter Konsistent und asymptotihsc Normal
+
+## Marginales Modell II
+
+Gee Algorithmus nach Liang, Zeger (1986)
 
 
 

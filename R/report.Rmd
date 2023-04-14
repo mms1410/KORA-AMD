@@ -31,15 +31,29 @@ options(warn = -1)
 ```{r preliminaries, warning=FALSE}
 source("preprocess.R")
 library(kableExtra)
+library(broom)
 ```
 
 ```{r define-functions, echo = FALSE, include = FALSE}
-my_kable <- function(dtbl, caption, booktabs = TRUE, col.names = NULL, latex_options = "hold_position") {
+my_kable <- function(dtbl, caption, booktabs = TRUE, col.names = NULL, latex_options = "hold_position", expo = FALSE) {
   #'
-  #'
+  #' @dtbl (data.table): data table to be written in table form.
+  #' @caption (chr): cation of table.
+  #' @booktabs (logical): passed to same param in kable
+  #' @col.names (logical): passed to same param in kable
+  #' @latex_options (chr): passed to same param in kable
+  #' @expo (logical): if 'TRUE' all numeric columns will be exponentiated to base e.
   #'
   #'
   assertDataTable(dtbl)
+  assertString(caption)
+  assertString(latex_options)
+  assertLogical(booktabs)
+  assertLogical(expo)
+  if (expo) {
+    cols_numeric <- names(sapply(dtbl, is.numeric))[sapply(dtbl, is.numeric)]
+    dtbl[, (cols_numeric) := lapply(.SD, exp), .SDcols = cols_numeric]
+  }
   kable(dtbl,
         caption = caption,
         booktabs = booktabs,
@@ -49,7 +63,7 @@ my_kable <- function(dtbl, caption, booktabs = TRUE, col.names = NULL, latex_opt
 
 # I Deskriptive Statstik
 
-### §1 General
+### §1 Allgemein
 ```{r fit-amd-bl}
 as.data.table(table(data_fit[, LT_conti_worst_eye], useNA = "always")) %>% 
   my_kable(caption = "FIT: AMD at BL")
@@ -70,7 +84,7 @@ as.data.table(table(data_fit[LT_conti_worst_eye == "no_amd" | LT_conti_worst_eye
   my_kable(caption = "FIT: AMD at FU (no AMD or early AMD at BL)")
 ```
 \newpage
-### §2 Incidence and Progression
+### §2 Inzidenz und Progression
 
 ```{r fit-incidence, echo = FALSE, include = FALSE}
 incidences_fit <- get_incidence_tbl(data_fit,
@@ -97,4 +111,63 @@ incidences_fit[["case3"]] %>%
 ```{r fit-incidence-case4}
 incidences_fit[["case4"]] %>% 
   my_kable(caption = "Cummulative progression from early to late AMD", col.names = NA)
+```
+\newpage
+# II Logistische Modelle
+```{r analysis-one-eye}
+source("analysis-one-eye-conti.R")
+```
+
+## §1 pro Proband (schlechteste Auge)
+```{r fit-case-1}
+my_kable(
+  as.data.table(tidy(model_fit_1)),
+  caption = "Modell1 (Inzidenz Frühe AMD, exp)",
+  col.names = NA,
+  expo = TRUE
+)
+```
+
+```{r fit-case-2}
+my_kable(
+  as.data.table(tidy(model_fit_2)),
+  caption = "Modell2 (Inzidenz späte AMD (Def. 1), exp)",
+  col.names = NA,
+  expo = TRUE
+)
+```
+
+```{r fit-case-3}
+my_kable(
+  as.data.table(tidy(model_fit_3)),
+  caption = "Modell3(Inzidenz späte AMD (Def. 2), exp)",
+  col.names = NA,
+  expo = TRUE
+)
+```
+
+```{r fit-case-4}
+my_kable(
+  as.data.table(tidy(model_fit_4)),
+  caption = "Modell4 (Progression frühe/späte AMD, exp)",
+  col.names = NA,
+  expo = TRUE
+)
+```
+\newpage
+## §2 pro Auge
+```{r, echo=FALSE, include=FALSE}
+source("analysis-two-eyes-conti.R")
+```
+
+```{r fit-marginal-case-1}
+my_kable(
+  tidy_gee(model_gee_fit_1),
+  caption = "GEE Modell 1",
+  col.names = NA
+)
+```
+
+```{r}
+
 ```
