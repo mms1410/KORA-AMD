@@ -247,7 +247,8 @@ wide_to_long <- function(dtbl, study, score) {
   return(dtbl)
 }
 
-get_incidence_tbl <- function(dtbl, amd_bl_col, amd_fu_col, split_col, digits = 2) {
+get_incidence_tbl <- function(dtbl, amd_bl_col, amd_fu_col, split_col, digits = 2,
+                              col_names = c("At_Risk", "Events", "Incidence(%)"), case_4 = "Progression") {
   #'
   #' Create incidence table by calling 'get_incidence' for each level in 'split_col'. 
   #'
@@ -256,6 +257,8 @@ get_incidence_tbl <- function(dtbl, amd_bl_col, amd_fu_col, split_col, digits = 
   #' @param amd_fu_col (chr):
   #' @param split_col (chr):
   #' @param digits (int):
+  #' @param col_names (chr):
+  #' @param case_4 (chr):
   #'
   #' @return data.table: incidence numbers in data.table
   assertDataTable(dtbl)
@@ -269,6 +272,8 @@ get_incidence_tbl <- function(dtbl, amd_bl_col, amd_fu_col, split_col, digits = 
   assert(is.factor(dtbl[[split_col]]))
   assert(setequal(levels(dtbl[[amd_bl_col]]), c("no_amd", "early_amd", "late_amd")))
   assert(setequal(levels(dtbl[[amd_fu_col]]), c("no_amd", "early_amd", "late_amd")))
+  assertCharacter(col_names, len = 3, any.missing = FALSE)
+  assertString(case_4)
   
   case1 <- data.table()
   case2 <- data.table()
@@ -277,14 +282,16 @@ get_incidence_tbl <- function(dtbl, amd_bl_col, amd_fu_col, split_col, digits = 
   for (level in levels(dtbl[[split_col]])){
     tmp <- get_incidence(dtbl = dtbl[dtbl[[split_col]] == level],
                   amd_bl_col = amd_bl_col,
-                  amd_fu_col = amd_fu_col)
+                  amd_fu_col = amd_fu_col,
+                  col_names = col_names,
+                  case_4 = case_4)
     case1 <- rbindlist(list(case1,tmp$case1[, group := as.factor(level)]))
     case2 <- rbindlist(list(case2,tmp$case2[, group := as.factor(level)]))
     case3 <- rbindlist(list(case3,tmp$case3[, group := as.factor(level)]))
     case4 <- rbindlist(list(case4,tmp$case4[, group := as.factor(level)]))
     
   }
-  tmp <- get_incidence(dtbl,amd_bl_col, amd_fu_col)
+  tmp <- get_incidence(dtbl,amd_bl_col, amd_fu_col, col_names = col_names, case_4 = case_4)
   case1 <- rbindlist(list(tmp[["case1"]][, group := as.factor("all")], case1))
   case2 <- rbindlist(list(tmp[["case2"]][, group := as.factor("all")], case2))
   case3 <- rbindlist(list(tmp[["case3"]][, group := as.factor("all")], case3))
@@ -299,7 +306,7 @@ get_incidence_tbl <- function(dtbl, amd_bl_col, amd_fu_col, split_col, digits = 
   
 }
 
-get_incidence <- function(dtbl, amd_bl_col, amd_fu_col, digits = 2) {
+get_incidence <- function(dtbl, amd_bl_col, amd_fu_col, digits = 2, col_names = c("At_Risk", "Events", "Incidence(%)"), case_4 = "Progression") {
   #'
   #' Create incidence table.
   #'
@@ -307,6 +314,8 @@ get_incidence <- function(dtbl, amd_bl_col, amd_fu_col, digits = 2) {
   #' @param amd_bl_col (chr):
   #' @param amd_fu_col (chr):
   #' @param digits (int):
+  #' @param col_names (chr):
+  #' @param case_4 (chr):
   #'
   #' @return data.table: incidence numbers in data.table
   assertDataTable(dtbl)
@@ -317,6 +326,8 @@ get_incidence <- function(dtbl, amd_bl_col, amd_fu_col, digits = 2) {
   assert(amd_fu_col %in% colnames(dtbl))
   assert(setequal(levels(dtbl[[amd_bl_col]]), c("no_amd", "early_amd", "late_amd")))
   assert(setequal(levels(dtbl[[amd_fu_col]]), c("no_amd", "early_amd", "late_amd")))
+  assertCharacter(col_names, len = 3, any.missing = FALSE)
+  assertString(case_4)
   
   
   amd_bl <- dtbl[[amd_bl_col]]
@@ -326,33 +337,33 @@ get_incidence <- function(dtbl, amd_bl_col, amd_fu_col, digits = 2) {
   at_risk <- nrow(dtbl[amd_bl == "no_amd"])
   events <- nrow(dtbl[(amd_bl == "no_amd" & amd_fu == "early_amd")])
   case1 <- as.data.table(t(c(
-    "At_Risk" = at_risk,
-    "Events" = events,
-    "Incidence(%)" = round(events / at_risk * 100, digits)
+    setNames(at_risk, col_names[1]),
+    setNames(events, col_names[2]),
+    setNames(round(events / at_risk * 100, digits), col_names[3])
   )))
   # Case 2
   at_risk <- nrow(dtbl[amd_bl == "no_amd"])
   events <- nrow(dtbl[amd_bl == "no_amd" & amd_fu == "late_amd"])
   case2 <- as.data.table(t(c(
-    "At_Risk" = at_risk,
-    "Events" = events,
-    "Incidence(%)" = round(events / at_risk * 100, digits)
+    setNames(at_risk, col_names[1]),
+    setNames(events, col_names[2]),
+    setNames(round(events / at_risk * 100, digits), col_names[3])
   )))
   # Case 3
   at_risk <- nrow(dtbl[amd_bl == "no_amd" | amd_bl == "early_amd"])
   events <- nrow(dtbl[(amd_bl == "no_amd" | amd_bl == "early_amd") & amd_fu == "late_amd"])
   case3 <- as.data.table(t(c(
-    "At_Risk" = at_risk,
-    "Events" = events,
-    "Incidence(%)" = round(events / at_risk * 100, digits)
+    setNames(at_risk, col_names[1]),
+    setNames(events, col_names[2]),
+    setNames(round(events / at_risk * 100, digits), col_names[3])
   )))
   # Case 4
   at_risk <- nrow(dtbl[amd_bl == "early_amd"])
   events <- nrow(dtbl[amd_bl == "early_amd" & amd_fu == "late_amd"])
   case4 <- as.data.table(t(c(
-    "At_Risk" = at_risk,
-    "Events" = events,
-    "Progression(%)" = round(events / at_risk * 100, digits)
+    setNames(at_risk, col_names[1]),
+    setNames(events, col_names[2]),
+    setNames(round(events / at_risk * 100, digits), case_4)
   )))
   
   return(list("case1" = case1,
@@ -419,23 +430,136 @@ center_variables <- function(dtbl, variables){
   
 }
 
-tidy_gee <- function(gee_model, exponentiate = FALSE) {
+tidy_gee <- function(gee_model, exponentiate = FALSE, row_names = NA, col_name = NA, col_names = NA, digits = 4) {
   #'
   #' Create tidy coefficient output for fitted gee model.
   #'
   #' @param gee_model (gee, glm): fitted gee model.
   #' @param exponentiate (logical): if TRUE coefficients will be taken to power of e.
+  #' @param row_name (chr):
+  #' @param col_name (chr):
+  #' @param col_names (chr):
+  #' @param digits (chr):
   #'
   #'
   #' @return data.table: table of coefficients.
   assertClass(gee_model, c("gee", "glm"))
   assertLogical(exponentiate)
+  assertCharacter(row_names)
+  assertString(col_name, na.ok = TRUE)
+  assertCharacter(col_names)
+  assertInt(digits)
   
   smry <- summary(gee_model)
   dtbl <- data.table(smry$coefficients, keep.rownames = TRUE)
+  if (all(!is.na(col_names))) {
+    assert(length(col_names) == length(colnames(dtbl)))
+    colnames(dtbl) <- col_names
+  }
+  if (all(!is.na(row_names))) {
+    assert(col_name %in% colnames(dtbl))
+    assertCharacter(dtbl[[col_name]])
+    assert(length(row_names) == length(dtbl[[col_name]]))
+    dtbl[[col_name]] <- row_names
+  }
+  cols_numeric <- names(sapply(dtbl, is.numeric))[sapply(dtbl, is.numeric)]
   if (exponentiate) {
-    cols_numeric <- names(sapply(dtbl, is.numeric))[sapply(dtbl, is.numeric)]
     dtbl[, (cols_numeric) := lapply(.SD, exp), .SDcols = cols_numeric]
   }
+  dtbl[, (cols_numeric) := lapply(.SD, round, digits), .SDcols = cols_numeric]
   return(dtbl)
+}
+
+fit_gee_models <- function(dtbl, regressors, regressand, id_col) {
+  #'
+  #' Fit GEE model.
+  #'
+  #' @param dtbl (data.table):
+  #' @param regressors (chr):
+  #' @param regressand (chr):
+  #' @param id_col (chr):
+  #'
+  #' @return
+  assertDataTable(dtbl)
+  assertCharacter(regressors)
+  assert(all(regressors %in% colnames(dtbl)))
+  assertString(regressand)
+  assert(regressand %in% colnames(dtbl))
+  assertString(id_col)
+  assert(id_col %in% colnames(dtbl))
+  # TODO: assert formula elements in colnames
+  
+  dtbl <- data_fit_1
+  regressors <- c("ltalteru", "lcsex", "ltrauchp", "ll_hdla", "time_bl_fu")
+  regressand <- "amd_status_fu"
+  id_col <- "person_id"
+  gee_formula <- as.formula(
+    paste(regressand, paste0(regressors, collapse = " + "), sep = " ~ ")
+  )
+  gee(formula = amd_status_fu ~ ltalteru + lcsex + time_bl_fu + ltrauchp + ll_hdla,
+      id = person_id,
+      data = dtbl)
+  
+  model1 <- do.call("gee", list(formula = gee_formula, data = dtbl, id = "person_id"))
+  
+}
+
+clear_factors <- function(dtbl) {
+  #'
+  #' Drop unused factor columns.
+  #'
+  #' @param dtbl (data.table): data
+  #' 
+  #' @return data.table: data
+  assertDataTable(dtbl)
+  factor_columns <- names(sapply(dtbl, is.factor))[sapply(dtbl, is.factor) == TRUE]
+  dtbl[, (factor_columns) := lapply(.SD, fct_drop), .SDcols = factor_columns]
+  return(dtbl)
+}
+
+get_table_glm <- function(fitted_model, col_names = c("Parameter", "Prob/OR", "95%-CI"), expo = FALSE, digits = 4, intercept = FALSE){
+  #'
+  #'
+  #' @param fitted_model (glm):
+  #' @param col_names (chr):
+  #' @param expo (logical):
+  #' @param digits (int):
+  #' @param intercept (logical):
+  #'
+  #' @return data.table:
+  assert("glm" %in% class(fitted_model))
+  assertCharacter(col_names)
+  if (!all(is.na(col_names))) assert(length(col_names) == 3)
+  assertLogical(expo)
+  assertInt(digits)
+  assertLogical(intercept)
+  
+  smry <- summary(fitted_model)
+  if (expo) {
+    cis <- round(exp(confint(fitted_model)),digits)
+    coefs <- round(exp(coef(fitted_model)), digits)
+  } else {
+    cis <- round(confint(fitted_model), digits)
+    coefs <- round(coef(fitted_model), digits)
+  }
+  cis <- paste0("[",cis[, 1], ",",cis[, 2], "]")
+  
+  dtbl <- data.table(cbind(names(coefs), coefs, cis))
+  if (!all(is.na(col_names))) {
+    colnames(dtbl) <- col_names
+  }
+  if (!intercept) {
+    dtbl <- dtbl[-1,]
+  }
+  return(dtbl)
+}
+
+get_table_gee <- function(fitted_model, col_names = c("Parameter", "Prob/OR", "95%-CI"), expo = FALSE, digits = 4, intercept = FALSE){
+  #'
+  #'
+  #'
+  #'
+  #'
+  assert("geeglm" %in% fitted_model)
+  
 }

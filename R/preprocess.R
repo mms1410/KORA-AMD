@@ -1,4 +1,3 @@
-rm(list = ls())
 library(haven)
 library(data.table)
 library(checkmate)
