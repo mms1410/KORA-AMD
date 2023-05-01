@@ -329,9 +329,9 @@ get_incidence <- function(dtbl, amd_bl_col, amd_fu_col, digits = 2, col_names = 
   assertCharacter(col_names, len = 3, any.missing = FALSE)
   assertString(case_4)
   
-  
   amd_bl <- dtbl[[amd_bl_col]]
   amd_fu <-dtbl[[amd_fu_col]]
+  
   
   # Case 1
   at_risk <- nrow(dtbl[amd_bl == "no_amd"])
@@ -552,14 +552,4 @@ get_table_glm <- function(fitted_model, col_names = c("Parameter", "Prob/OR", "9
     dtbl <- dtbl[-1,]
   }
   return(dtbl)
-}
-
-get_table_gee <- function(fitted_model, col_names = c("Parameter", "Prob/OR", "95%-CI"), expo = FALSE, digits = 4, intercept = FALSE){
-  #'
-  #'
-  #'
-  #'
-  #'
-  assert("geeglm" %in% fitted_model)
-  
 }

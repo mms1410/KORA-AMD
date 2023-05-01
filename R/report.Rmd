@@ -1,6 +1,6 @@
 ---
 title: "KORA-AMD"
-author: "Matina Kasiouri, Sven Morlock, Leo Höltkemeyer"
+author: "Sven Morlock, Leo Höltkemeyer"
 date: "2023-03-20"
 output:
   pdf_document:
@@ -28,7 +28,7 @@ knitr::opts_chunk$set(echo = FALSE)
 options(warn = -1) 
 ```
 
-```{r preliminaries, warning=FALSE}
+```{r preliminaries, warning=FALSE, echo = FALSE}
 source("preprocess.R")
 source("analysis-one-eye-conti.R")
 source("analysis-two-eyes-conti.R")
@@ -66,7 +66,9 @@ my_kable <- function(dtbl, caption, booktabs = TRUE, col.names = NULL, latex_opt
 } %>%  kable_styling(latex_options = latex_options)
 ```
 
-# I Deskriptive Statstik
+# Deskription
+
+### 1 KORA-FIT
 ```{r fit-amd-bl}
 as.data.table(table(data_fit[, LT_conti_worst_eye], useNA = "always")) %>% 
   my_kable(caption = "FIT: AMD at BL")
@@ -78,16 +80,36 @@ as.data.table(table(data_fit[, PT_conti_worst_eye],useNA = "always")) %>%
 ```
 
 ```{r fit-amd-fu-1}
-as.data.table(table(data_fit[LT_conti_worst_eye == "no_amd", PT_conti_worst_eye], useNA = "always")) %>% 
-  my_kable(caption = "FIT: AMD at FU (no AMD at BL)")
+#as.data.table(table(data_fit[LT_conti_worst_eye == "no_amd", PT_conti_worst_eye], useNA = "always")) %>% 
+#  my_kable(caption = "FIT: AMD at FU (no AMD at BL)")
 ```
 
 ```{r fit-amd-fu-2}
-as.data.table(table(data_fit[LT_conti_worst_eye == "no_amd" | LT_conti_worst_eye == "early", PT_conti_worst_eye],useNA = "always")) %>% 
-  my_kable(caption = "FIT: AMD at FU (no AMD or early AMD at BL)")
+#as.data.table(table(data_fit[LT_conti_worst_eye == "no_amd" | LT_conti_worst_eye == "early", PT_conti_worst_eye],useNA = "always")) %>% 
+#  my_kable(caption = "FIT: AMD at FU (no AMD or early AMD at BL)")
+```
+### 2 KORA-FF4
+```{r ff4-amd-bl}
+as.data.table(table(data_ff4[, LT_conti_worst_eye], useNA = "always")) %>% 
+  my_kable(caption = "FF4: AMD at BL")
+```
+
+```{r ff4-amd-fu}
+as.data.table(table(data_ff4[, U3T_conti_worst_eye],useNA = "always")) %>% 
+  my_kable(caption = "FF4: AMD at FU")
+```
+
+```{r ff4-amd-fu-1}
+#as.data.table(table(data_ff4[LT_conti_worst_eye == "no_amd", U3T_conti_worst_eye], useNA = "always")) %>% 
+#  my_kable(caption = "FF4: AMD at FU (no AMD at BL)")
+```
+
+```{r ff4-amd-fu-2}
+#as.data.table(table(data_ff4[LT_conti_worst_eye == "no_amd" | LT_conti_worst_eye == "early", U3T_conti_worst_eye],useNA = "always")) %>% 
+#  my_kable(caption = "FF4: AMD at FU (no AMD or early AMD at BL)")
 ```
 \newpage
-# Inzidenz und Progression
+# I Progression und Kummulative Inzidenz
 ```{r fit-incidence, echo = FALSE, include = FALSE}
 incidences_fit <- get_incidence_tbl(dtbl = data_fit,
                   amd_bl_col = "LT_conti_worst_eye",
@@ -117,8 +139,9 @@ incidences_ff4_long <- get_incidence_tbl(data_ff4_long,
                                         col_names = c("Risk", "Event", "%"),
                                         case_4 = "%")
 ```
+## 1 KORA-FIT
 
-## §1 Frühe AMD
+### Frühe AMD
 ```{r fit-incidence-case1}
 #knitr::kables(list(
 #  incidences_fit[["case1"]] %>% my_kable(caption = "I", col.names = NA),
@@ -128,8 +151,7 @@ incidences_fit[["case1"]] %>% my_kable(caption = "Kummulative Inzidenz frühe AM
 incidences_fit_long[["case1"]] %>% my_kable(caption = "Kummulative Inzidenz frühe AMD, II", col.names = NA)
 
 ```
-
-## §2 Inzidenz späte AMD (Definition 1)
+### Inzidenz späte AMD (Definition 1)
 ```{r fit-incidence-case2}
 #knitr::kables(list(
 #  incidences_fit[["case2"]] %>% my_kable(caption = "I", col.names = NA),
@@ -138,7 +160,7 @@ incidences_fit_long[["case1"]] %>% my_kable(caption = "Kummulative Inzidenz frü
 incidences_fit[["case2"]] %>% my_kable(caption = "Kummulative Inzidenz frühe AMD, I", col.names = NA)
 incidences_fit_long[["case2"]] %>% my_kable(caption = "Kummulative Inzidenz frühe AMD, II", col.names = NA)
 ```
-## §3 Inzidenz späte AMD (Definition 2)
+### Inzidenz späte AMD (Definition 2)
 ```{r fit-incidence-case3}
 #knitr::kables(list(
 #  incidences_fit[["case3"]] %>% my_kable(caption = "I", col.names = NA),
@@ -147,7 +169,7 @@ incidences_fit_long[["case2"]] %>% my_kable(caption = "Kummulative Inzidenz frü
 incidences_fit[["case3"]] %>% my_kable(caption = "Kummulative Inzidenz frühe AMD, I", col.names = NA)
 incidences_fit_long[["case3"]] %>% my_kable(caption = "Kummulative Inzidenz frühe AMD, II", col.names = NA)
 ```
-## § Progression späte AMD (von keiner AMD)
+### Progression späte AMD
 ```{r fit-incidence-case4}
 #knitr::kables(list(
 #  incidences_fit[["case4"]] %>% my_kable(caption = "I", col.names = NA),
@@ -156,16 +178,91 @@ incidences_fit_long[["case3"]] %>% my_kable(caption = "Kummulative Inzidenz frü
 incidences_fit[["case4"]] %>% my_kable(caption = "Kummulative Inzidenz frühe AMD, I", col.names = NA)
 incidences_fit_long[["case4"]] %>% my_kable(caption = "Kummulative Inzidenz frühe AMD, II", col.names = NA)
 ```
+## 2 KORA-FF4
+### Frühe AMD
+```{r ff4-incidence-case1}
+#knitr::kables(list(
+#  incidences_fit[["case1"]] %>% my_kable(caption = "I", col.names = NA),
+#  incidences_fit_long[["case1"]] %>% my_kable(caption = "II", col.names = NA)
+#), caption = "Cummulative incidence of early AMD")
+incidences_ff4[["case1"]] %>% my_kable(caption = "Kummulative Inzidenz frühe AMD, I", col.names = NA)
+incidences_ff4_long[["case1"]] %>% my_kable(caption = "Kummulative Inzidenz frühe AMD, II", col.names = NA)
+
+```
+### Inzidenz späte AMD (Definition 1)
+```{r ff4-incidence-case2}
+#knitr::kables(list(
+#  incidences_fit[["case2"]] %>% my_kable(caption = "I", col.names = NA),
+#  incidences_fit_long[["case2"]] %>% my_kable(caption = "II", col.names = NA)
+#), caption = "Cummulative incidence of early AMD")
+incidences_ff4[["case2"]] %>% my_kable(caption = "Kummulative Inzidenz frühe AMD, I", col.names = NA)
+incidences_ff4_long[["case2"]] %>% my_kable(caption = "Kummulative Inzidenz frühe AMD, II", col.names = NA)
+```
+### Inzidenz späte AMD (Definition 2)
+```{r ff4-incidence-case3}
+#knitr::kables(list(
+#  incidences_fit[["case3"]] %>% my_kable(caption = "I", col.names = NA),
+#  incidences_fit_long[["case3"]] %>% my_kable(caption = "II", col.names = NA)
+#), caption = "Cummulative incidence of early AMD")
+incidences_ff4[["case3"]] %>% my_kable(caption = "Kummulative Inzidenz frühe AMD, I", col.names = NA)
+incidences_ff4_long[["case3"]] %>% my_kable(caption = "Kummulative Inzidenz frühe AMD, II", col.names = NA)
+```
+### Progression späte AMD
+```{r ff4-incidence-case4}
+#knitr::kables(list(
+#  incidences_fit[["case4"]] %>% my_kable(caption = "I", col.names = NA),
+#  incidences_fit_long[["case4"]] %>% my_kable(caption = "II", col.names = NA)
+#), caption = "Cummulative incidence of early AMD")
+incidences_ff4[["case4"]] %>% my_kable(caption = "Kummulative Inzidenz frühe AMD, I", col.names = NA)
+incidences_ff4_long[["case4"]] %>% my_kable(caption = "Kummulative Inzidenz frühe AMD, II", col.names = NA)
+```
+
 
 ```{r analysis-one-eye}
 ```
 \newpage
-# II Logistische Modelle Continental Score FIT
-
-## §1 Inzidenz fruehe AMD
-```{r}
+# II Risikofaktoren
+## KORA-FIT
+### 1 Inzidenz fruehe AMD [Model I]
+```{r fit-risk-factors-case1}
+get_table_glm(model_glm_fit_1, expo = FALSE) %>% 
+  my_kable(caption = "Risikofaktoren frühe AMD", col.names = NA)
 ```
 
-## §2 Inzidenz spaete AMD
-```{r}
+```{r fit-risk-factors-case1-gee}
+m <- tidy_gee(model_gee_fit_1)
+my_kable(m, caption = "Risikofaktoren frühe AMD (GEE)", col.names = NA)
+```
+
+### 2 Inzidenz spaete AMD (Definition 2) [Model III]
+```{r fit-risk-factors-case3}
+get_table_glm(model_glm_fit_2, expo = FALSE) %>% 
+  my_kable(caption = "Risikofaktoren späte AMD (Def. 2)", col.names = NA)
+```
+
+```{r fit-risk-factors-case3-gee}
+m <- tidy_gee(model_gee_fit_2)
+my_kable(m, caption = "Risikofaktoren späte AMD (Def. 2, GEE)", col.names = NA)
+```
+## KORA-FF4
+### 1 Inzidenz fruehe AMD [Model I]
+```{r ff4-risk-factors-case1}
+get_table_glm(model_glm_ff4_1, expo = FALSE) %>% 
+  my_kable(caption = "Risikofaktoren frühe AMD", col.names = NA)
+```
+
+```{r ff4-risk-factors-case1-gee}
+m <- tidy_gee(model_gee_ff4_1)
+my_kable(m, caption = "Risikofaktoren frühe AMD (GEE)", col.names = NA)
+```
+
+### 2 Inzidenz spaete AMD (Definition 2) [Model III]
+```{r ff4-risk-factors-case2}
+get_table_glm(model_glm_ff4_2, expo = FALSE) %>% 
+  my_kable(caption = "Risikofaktoren späte AMD (Def. 2)", col.names = NA)
+```
+
+```{r ff4-risk-factors-case2-gee}
+m <- tidy_gee(model_gee_ff4_2)
+my_kable(m, caption = "Risikofaktoren späte AMD (Def. 2, GEE)", col.names = NA)
 ```

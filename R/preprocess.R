@@ -10,6 +10,7 @@ data_folder <- file.path(root_folder, "data")
 r_folder <- file.path(root_folder, "R")
 assets_folder <- file.path(root_folder, "assets")
 path_data <- file.path(data_folder, "20230222_KORA_S4_FF4_FIT_StaBLab_with_riskfactors.sav")
+path_grs <- file.path(data_folder, "KORA_AMD_Score_update.txt")
 path_dictionary <- file.path(data_folder, "vars_to_select")
 #------------------------------------------------------------------------------
 assertDirectory(data_folder)
@@ -17,10 +18,12 @@ if (!dir.exists(assets_folder)) {
   dir.create(assets_folder)
 }
 assertFileExists(path_data)
+assertFileExists(path_grs)
 assertFileExists(path_dictionary)
 assertFileExists(file.path(r_folder, "functions.R"))
 #-------------------------------------------------------------------------------
 data <- haven::read_sav(file = path_data)
+grs <- fread(path_grs)
 
 data <- as.data.table(data)
 data_dictionary <- fread(path_dictionary)
@@ -39,6 +42,8 @@ data <- subset_data(dtbl = data,
                         data.dictionary = data_dictionary,
                         age.groups.fit = age_groups_fit,
                         age.groups.ff4 = age_groups_ff4)
+#-------------------------------------------------------------------------------
+#data <- data[grs, on = "zz_nr"] reduces data set
 #-------------------------------------------------------------------------------
 def_amd_continental <- c("no_amd" = "0", "early_amd" = "1", "early_amd" = "2",
                          "early_amd" = "3", "late_amd" = "4")
@@ -81,7 +86,7 @@ data$U3T_conti_worst_eye <- pmax(data$U3TConti_LI_2_sf, data$U3TConti_RE_2_sf, n
 data$U3T_ferris_worst_eye <- pmax(data$U3TFerris_LI_2_sf, data$U3TFerris_RE_2_sf, na.rm = TRUE)
 #-------------------------------------------------------------------------------
 ## remove factor ordering
-col_names <- names(sapply(data, is.factor))
+col_names <- names(sapply(data, is.factor))[sapply(data, is.factor)]
 data[, (col_names) := lapply(.SD, function(x){factor(x, ordered = FALSE)}), .SDcols = col_names]
 rm(list = c("col_names"))
 data$ltalteru <- as.numeric(data$ltalteru)
@@ -93,6 +98,8 @@ data$ltalteru  <- data$ltalteru - mean(data$ltalteru, na.rm = TRUE)
 data$ll_hdla <- data$ll_hdla -mean(data$ll_hdla, na.rm = TRUE)
 data$PTALTERU <- data$PTALTERU -mean(data$PTALTERU, na.rm = TRUE)
 data$u3talteru <- data$u3talteru -mean(data$u3talteru, na.rm = TRUE)
+#-------------------------------------------------------------------------------
+data$lcsex <- relevel(data$lcsex, ref = "M")
 #-------------------------------------------------------------------------------
 # FIT: 506 & FF4: 350
 # we know that if ferris score is na then also conti score and vice versa.

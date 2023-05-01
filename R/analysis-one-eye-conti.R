@@ -23,23 +23,23 @@ source(file.path(r_folder, "functions.R"))
 # Case 1: Incidence early AMD
 ## note: here n risk set is 481 and not 484 as in original paper
 ## 3 participants had late amd at FU
-data_fit_1 <- subset_simplify_factor(data_fit,
+data_fit_1.1 <- subset_simplify_factor(data_fit,
                                      score_bl_levels = "no_amd",
                                      score_fu = "PT_conti_worst_eye",
                                      score_fu_levels = c("no_amd", "early_amd"))
 ## as in original paper
-data_fit_1.2 <- subset_simplify_factor(data_fit,
+data_fit_1 <- subset_simplify_factor(data_fit,
                                        score_bl_levels = "no_amd",
                                        score_fu = "PT_conti_worst_eye",
                                        score_fu_levels = c(no_amd = "no_amd", early_amd = "early_amd", early_amd = "late_amd"))
 
 # Case 2: Incidence late AMD among no AMD at BL (definition 1)
-data_fit_2 <- subset_simplify_factor(data_fit,
+data_fit_2.1 <- subset_simplify_factor(data_fit,
                                      score_bl_levels = "no_amd",
                                      score_fu = "PT_conti_worst_eye",
                                      score_fu_levels = c("no_amd", "late_amd"))
 
-data_fit_2.2 <- subset_simplify_factor(data_fit,
+data_fit_2 <- subset_simplify_factor(data_fit,
                                       score_bl_levels = "no_amd",
                                       score_fu = "PT_conti_worst_eye",
                                       score_fu_levels = c(no_amd = "no_amd", late_amd = "late_amd", late_amd = "early_amd"))
@@ -66,23 +66,23 @@ data_fit_4 <- subset_simplify_factor(data_fit,
 # Case 1: Incidence early AMD
 ## note: here n risk set is 481 and not 484 as in original paper
 ## 3 participants had late amd at FU
-data_ff4_1 <- subset_simplify_factor(data_ff4,
+data_ff4_1.1 <- subset_simplify_factor(data_ff4,
                                      score_bl_levels = "no_amd",
                                      score_fu = "U3T_conti_worst_eye",
                                      score_fu_levels = c("no_amd", "early_amd"))
 ## as in original paper
-data_ff4_1.2 <- subset_simplify_factor(data_ff4,
+data_ff4_1 <- subset_simplify_factor(data_ff4,
                                        score_bl_levels = "no_amd",
                                        score_fu = "U3T_conti_worst_eye",
                                        score_fu_levels = c(no_amd = "no_amd", early_amd = "early_amd", early_amd = "late_amd"))
 
 # Case 2: Incidence late AMD among no AMD at BL (definition 1)
-data_ff4_2 <- subset_simplify_factor(data_ff4,
+data_ff4_2.1 <- subset_simplify_factor(data_ff4,
                                      score_bl_levels = "no_amd",
                                      score_fu = "U3T_conti_worst_eye",
                                      score_fu_levels = c("no_amd", "late_amd"))
 
-data_ff4_2.2 <- subset_simplify_factor(data_ff4,
+data_ff4_2<- subset_simplify_factor(data_ff4,
                                        score_bl_levels = "no_amd",
                                        score_fu = "U3T_conti_worst_eye",
                                        score_fu_levels = c(no_amd = "no_amd", late_amd = "late_amd", late_amd = "early_amd"))
@@ -113,6 +113,9 @@ data_ff4_4 <- subset_simplify_factor(data_ff4,
 model_glm_fit_1 <- glm(PT_conti_worst_eye ~ ltalteru + lcsex + time_bl_fu + ltrauchp + ll_hdla,
                    data = data_fit_1,
                    family = binomial(link="logit"))
+model_glm_fit_1_intercept <- glm(PT_conti_worst_eye ~ 1,
+                                        data = data_fit_1,
+                                        family = binomial(link = "logit"))
 ## Case 2
 model_glm_fit_2 <- glm(PT_conti_worst_eye ~ ltalteru + lcsex + time_bl_fu + ltrauchp + ll_hdla,
                    data = data_fit_2,
@@ -124,10 +127,16 @@ model_glm_fit_2_intercept <- glm(PT_conti_worst_eye ~ 1,
 model_glm_fit_3 <- glm(PT_conti_worst_eye ~ ltalteru + lcsex + time_bl_fu + ltrauchp + ll_hdla + amd_bl,
                   data = data_fit_3,
                   family = binomial(link="logit"))
+model_glm_fit_3_intercept <- glm(PT_conti_worst_eye ~ 1,
+                                       data = data_fit_3,
+                                       family = binomial(link = "logit"))
 ## Case 4
 model_glm_fit_4 <- glm(PT_conti_worst_eye ~ ltalteru + lcsex + time_bl_fu + ltrauchp + ll_hdla,
                   data = data_fit_4,
                   family = binomial(link="logit"))
+model_glm_fit_4_intercept <- glm(PT_conti_worst_eye ~ 1,
+                                        data = data_fit_4,
+                                        family = binomial(link = "logit"))
 
 #######
 # FF4 #
@@ -137,16 +146,25 @@ model_glm_fit_4 <- glm(PT_conti_worst_eye ~ ltalteru + lcsex + time_bl_fu + ltra
 model_glm_ff4_1 <- glm(U3T_conti_worst_eye ~ ltalteru + lcsex + time_bl_fu + ltrauchp + ll_hdla,
                        data = data_ff4_1,
                        family = binomial(link="logit"))
+model_glm_ff4_1_intercept <- glm(U3T_conti_worst_eye ~ 1,
+                                        data = data_ff4_1,
+                                        family = binomial(link = "logit"))
 
 ## Case 2
 model_glm_ff4_2 <- glm(U3T_conti_worst_eye ~ ltalteru + lcsex + time_bl_fu + ltrauchp + ll_hdla,
                        data = data_ff4_2,
                        family = binomial(link="logit"))
+model_glm_ff4_2_intercept <- glm(U3T_conti_worst_eye ~ 1,
+                                        data = data_ff4_2,
+                                        family = binomial(link = "logit"))
 
 ## Case 3
 model_glm_ff4_3 <- glm(U3T_conti_worst_eye ~ ltalteru + lcsex + time_bl_fu + ltrauchp + ll_hdla + amd_bl,
                        data = data_ff4_3,
                        family = binomial(link="logit"))
+model_glm_ff4_3_intercept <- glm(U3T_conti_worst_eye ~ 1,
+                                        data = data_ff4_3,
+                                        family = binomial(link = "logit"))
 
 ## Case 4
 #model_glm_ff4_4 <- glm(U3T_conti_worst_eye ~ ltalteru + lcsex + time_bl_fu + ltrauchp + ll_hdla,
