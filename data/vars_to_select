@@ -1,9 +1,10 @@
 variable_name,variable_type
+zz_nr,numeric
 lcsex,factor
 ltalteru,numeric
 ll_hdla,numeric
 ll_ldla,numeric
-ltrauchp,factor
+ltcigreg_sf,factor
 ltsgecat, factor
 ltdiabet, factor
 ltbmi, factor
