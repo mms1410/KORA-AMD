@@ -225,7 +225,7 @@ incidences_ff4_long[["case4"]] %>% my_kable(caption = "Kummulative Inzidenz frü
 ## KORA-FIT
 ### 1 Inzidenz fruehe AMD [Model I]
 ```{r fit-risk-factors-case1}
-get_table_glm(model_glm_fit_1, expo = FALSE) %>% 
+get_table_glm(model_glm_fit_1, expo = TRUE) %>% 
   my_kable(caption = "Risikofaktoren frühe AMD", col.names = NA)
 ```
 
@@ -236,7 +236,7 @@ my_kable(m, caption = "Risikofaktoren frühe AMD (GEE)", col.names = NA)
 
 ### 2 Inzidenz spaete AMD (Definition 2) [Model III]
 ```{r fit-risk-factors-case3}
-get_table_glm(model_glm_fit_2, expo = FALSE) %>% 
+get_table_glm(model_glm_fit_2, expo = TRUE) %>% 
   my_kable(caption = "Risikofaktoren späte AMD (Def. 2)", col.names = NA)
 ```
 
@@ -247,7 +247,7 @@ my_kable(m, caption = "Risikofaktoren späte AMD (Def. 2, GEE)", col.names = NA)
 ## KORA-FF4
 ### 1 Inzidenz fruehe AMD [Model I]
 ```{r ff4-risk-factors-case1}
-get_table_glm(model_glm_ff4_1, expo = FALSE) %>% 
+get_table_glm(model_glm_ff4_1, expo = TRUE) %>% 
   my_kable(caption = "Risikofaktoren frühe AMD", col.names = NA)
 ```
 
@@ -258,7 +258,7 @@ my_kable(m, caption = "Risikofaktoren frühe AMD (GEE)", col.names = NA)
 
 ### 2 Inzidenz spaete AMD (Definition 2) [Model III]
 ```{r ff4-risk-factors-case2}
-get_table_glm(model_glm_ff4_2, expo = FALSE) %>% 
+get_table_glm(model_glm_ff4_2, expo = TRUE) %>% 
   my_kable(caption = "Risikofaktoren späte AMD (Def. 2)", col.names = NA)
 ```
 

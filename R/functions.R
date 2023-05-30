@@ -2,6 +2,148 @@ library(data.table)
 library(checkmate)
 library(haven)
 #-------------------------------------------------------------------------------
+#                              Data Processing
+#-------------------------------------------------------------------------------
+collapse_conti_score <- function(dtbl,
+                                 col_names = c("LTConti_LI_2_sf",
+                                               "LTConti_RE_2_sf",
+                                               "U3TConti_LI_2_sf",
+                                               "U3TConti_RE_2_sf",
+                                               "PTConti_LI_2_sf",
+                                               "PTConti_RE_2_sf")) {
+  #'
+  #'
+  #'
+  #'
+  #'
+  assertDataTable(dtbl)
+  assertCharacter(col_names)
+  assert(all(col_names %in% colnames(dtbl)))
+  
+  no_amd <- c("0")
+  early_amd <- c("1", "2", "3")
+  late_amd <- c("4")
+  conti_collapse <- function(column) {
+    # not all levels may be observed.
+    no_amd <- no_amd[no_amd %in% column]
+    early_amd <- early_amd[early_amd %in% column]
+    late_amd <- late_amd[late_amd %in% column]
+    fct_collapse(column, "0" = no_amd, "1" = early_amd, "4" = late_amd)
+  }
+  dtbl[, c(col_names) := lapply(.SD, conti_collapse), .SDcols = col_names]
+  
+  return(dtbl)
+}
+
+collapse_ferris_score <- function(dtbl,
+                                  col_names = c("LTFerris_LI_2_sf",
+                                                "LTFerris_RE_2_sf",
+                                                "U3TFerris_LI_2_sf",
+                                                "U3TFerris_RE_2_sf",
+                                                "PTFerris_LI_2_sf",
+                                                "PTFerris_RE_2_sf")) {
+  #'
+  #'
+  #'
+  assertDataTable(dtbl)
+  assertCharacter(col_names)
+  assert(all(col_names %in% colnames(dtbl)))
+  
+  no_amd <- c("0", "1")
+  early_amd <- c("2", "3")
+  late_amd <- c("4")
+  ferris_collapse <- function(column) {
+    # not all levels may be observed.
+    no_amd <- no_amd[no_amd %in% column]
+    early_amd <- early_amd[early_amd %in% column]
+    late_amd <- late_amd[late_amd %in% column]
+    fct_collapse(column, "0" = no_amd, "1" = early_amd, "4" = late_amd)
+  }
+  dtbl[, c(col_names) := lapply(.SD, ferris_collapse), .SDcols = col_names]
+  
+  return(dtbl)
+}
+
+factor_pmax <- function(x,y) {
+  #'
+  #'
+  #'
+  assertFactor(x)
+  assertFactor(y)
+  
+  x <- as.numeric(as.character(x))
+  y <- as.numeric(as.character(y))
+  result <- pmax(x,y, na.rm = TRUE)
+  as.factor(result)
+}
+
+rename_ferris_scores <- function(dtbl,
+                                 col_names = c("LTFerris_LI_2_sf",
+                                               "LTFerris_RE_2_sf",
+                                               "LT_ferris_worst_eye",
+                                               "U3TFerris_LI_2_sf",
+                                               "U3TFerris_RE_2_sf",
+                                               "U3T_ferris_worst_eye",
+                                               "PTFerris_LI_2_sf",
+                                               "PTFerris_RE_2_sf",
+                                               "PT_ferris_worst_eye")) {
+  assertDataTable(dtbl)
+  assertCharacter(col_names)
+  assert(all(col_names %in% colnames(dtbl)))
+  
+  
+  no_amd <- c("0", "1")
+  early_amd <- c("2", "3")
+  late_amd <- c("4")
+  rename_ferris <- function(column) {
+    no_amd <- no_amd[no_amd %in% column]
+    early_amd <- early_amd[early_amd %in% column]
+    late_amd <- late_amd[late_amd %in% column]
+    fct_collapse(column, 
+                 no_amd = no_amd,
+                 early_amd = early_amd,
+                 late_amd = late_amd
+                 )
+  }
+  dtbl[, c(col_names) := lapply(.SD, rename_ferris), .SDcols = col_names]
+  
+  return(dtbl)
+}
+
+rename_conti_scores <- function(dtbl,
+                                col_names = c("LTConti_LI_2_sf",
+                                              "LTConti_RE_2_sf",
+                                              "LT_conti_worst_eye",
+                                              "U3TConti_LI_2_sf",
+                                              "U3TConti_RE_2_sf",
+                                              "U3T_conti_worst_eye",
+                                              "PTConti_LI_2_sf",
+                                              "PTConti_RE_2_sf",
+                                              "PT_conti_worst_eye")) {
+  #'
+  #'
+  #'
+  #'
+  #'
+  assertDataTable(dtbl)
+  assertCharacter(col_names)
+  assert(all(col_names %in% colnames(dtbl)))
+  
+  no_amd <- "0"
+  early_amd <- c("1", "2", "3")
+  late_amd <- "4"
+  rename_conti <- function(column) {
+    fct_collapse(column, 
+                 no_amd = no_amd[no_amd %in% column],
+                 early_amd = early_amd[early_amd %in% column],
+                 late_amd = late_amd[late_amd %in% column]
+                 ) 
+  }
+  dtbl[, c(col_names) := lapply(.SD, rename_conti), .SDcols = col_names]
+  
+  return(dtbl)
+}
+
 subset_data <- function(dtbl, data.dictionary, age.groups.fit, age.groups.ff4) {
   #'
   #' Preprocess dtbl.
@@ -246,6 +388,52 @@ wide_to_long <- function(dtbl, study, score) {
   dtbl[, (to_remove) := NULL]
   return(dtbl)
 }
+#-------------------------------------------------------------------------------
+#                              Data Analytics
+#-------------------------------------------------------------------------------
+get_ci_intercept_tbl <- function(dtbl, amd_fu_col, split_col, digits = 2, col_name = "95% CI", exponentiate = TRUE) {
+  #'
+  #'
+  #'
+  #'
+  ci_tbl <- get_ci_intercept(dtbl = dtbl, amd_fu_col = amd_fu_col,
+                             group_name = "all",
+                             digits = digits, exponentiate = exponentiate)
+  for (group in levels(dtbl[[split_col]])) {
+    
+    tbl_tmp <- get_ci_intercept(dtbl = dtbl[dtbl[[split_col]] == group],
+                     amd_fu_col = amd_fu_col,
+                     group_name = group,
+                     digits = digits,
+                     exponentiate = exponentiate)
+    ci_tbl <- rbindlist(list(ci_tbl, tbl_tmp))
+  }
+  return(ci_tbl)
+}
+
+get_ci_intercept <- function(dtbl, amd_fu_col, group_name, digits = 2, exponentiate = TRUE) {
+  #'
+  #'
+  #'
+  #'
+  assertDataTable(dtbl)
+  assertString(amd_fu_col)
+  assertString(group_name)
+  assert(amd_fu_col %in% colnames(dtbl))
+  
+  f <- as.formula(paste(amd_fu_col, "~ 1"))
+  model_intercept <- glm(formula = f, data = dtbl, family = "binomial")
+  
+  if (exponentiate) {
+    ci <- exp(confint(model_intercept))
+  } else {
+    ci <- confint(model_intercept)
+  }
+  ci <- round(ci, digits = digits)
+  ci <- paste(ci, sep = "", collapse = " to ")
+  ci <- cbind(ci, group = group_name)
+  return(as.data.table(ci))
+}
 
 get_incidence_tbl <- function(dtbl, amd_bl_col, amd_fu_col, split_col, digits = 2,
                               col_names = c("At_Risk", "Events", "Incidence(%)"), case_4 = "Progression") {
@@ -412,24 +600,6 @@ subset_simplify_factor <- function(dtbl, score_bl = "LT_conti_worst_eye", score_
   return(dtbl)
 }
 
-center_variables <- function(dtbl, variables){
-  #'
-  #' Center variables in given datatable.
-  #'
-  #' @param dtbl (data.table): Input data table.
-  #' @param variables (chr): Variable names to be centered.
-  #'
-  #' @return data.table: Datatable with centered variables.
-  assertDataTable(dtbl)
-  assertCharacter(variables)
-  assert(all(variables %in% colnames(dtbl)))
-  for (variable in variables) {
-    assertNumeric(dtbl[[variable]])
-  }
-  
-  
-}
-
 tidy_gee <- function(gee_model, exponentiate = FALSE, row_names = NA, col_name = NA, col_names = NA, digits = 4) {
   #'
   #' Create tidy coefficient output for fitted gee model.
@@ -468,40 +638,6 @@ tidy_gee <- function(gee_model, exponentiate = FALSE, row_names = NA, col_name =
   }
   dtbl[, (cols_numeric) := lapply(.SD, round, digits), .SDcols = cols_numeric]
   return(dtbl)
-}
-
-fit_gee_models <- function(dtbl, regressors, regressand, id_col) {
-  #'
-  #' Fit GEE model.
-  #'
-  #' @param dtbl (data.table):
-  #' @param regressors (chr):
-  #' @param regressand (chr):
-  #' @param id_col (chr):
-  #'
-  #' @return
-  assertDataTable(dtbl)
-  assertCharacter(regressors)
-  assert(all(regressors %in% colnames(dtbl)))
-  assertString(regressand)
-  assert(regressand %in% colnames(dtbl))
-  assertString(id_col)
-  assert(id_col %in% colnames(dtbl))
-  # TODO: assert formula elements in colnames
-  
-  dtbl <- data_fit_1
-  regressors <- c("ltalteru", "lcsex", "ltrauchp", "ll_hdla", "time_bl_fu")
-  regressand <- "amd_status_fu"
-  id_col <- "person_id"
-  gee_formula <- as.formula(
-    paste(regressand, paste0(regressors, collapse = " + "), sep = " ~ ")
-  )
-  gee(formula = amd_status_fu ~ ltalteru + lcsex + time_bl_fu + ltrauchp + ll_hdla,
-      id = person_id,
-      data = dtbl)
-  
-  model1 <- do.call("gee", list(formula = gee_formula, data = dtbl, id = "person_id"))
-  
 }
 
 clear_factors <- function(dtbl) {
@@ -552,4 +688,62 @@ get_table_glm <- function(fitted_model, col_names = c("Parameter", "Prob/OR", "9
     dtbl <- dtbl[-1,]
   }
   return(dtbl)
+}
+
+get_or_table <- function(model, group_name, digits = 2) {
+  #'
+  #'
+  #'
+  #'
+  assert(!all(is.null(coef(model))))
+  assert(!all(is.null(confint(model))))
+  
+  or <- round(exp(coef(model))[-1], digits)
+  ci <- round(exp(confint((model)))[-1, ], digits)
+  or_tbl <- cbind(as.data.table(or, keep.rownames = TRUE), as.data.table(ci))
+  or_tbl[, group := group_name]
+  return(or_tbl)
+}
+#-------------------------------------------------------------------------------
+#                              Graphics
+#-------------------------------------------------------------------------------
+plot_odds<- function(models, group_names, names_covariates = NA, plot_title) {
+  #'
+  #'
+  #'
+  #'
+  sapply(X = models,
+         FUN = function(model){assert(!all(is.null(coef(model))))})
+  sapply(X = models,
+         FUN = function(model){assert(!all(is.null(confint(model))))})
+  assert(length(models) == length(group_names))
+  if (!any(is.na(names_covariates))) {
+    assert(length(model$coefficients) - 1 == length(names_covariates))
+  }
+  
+  values <- data.table()
+  for (idx in seq_along(models)) {
+    model <- models[[idx]]
+    group_name <- group_names[[idx]]
+    tbl <- get_or_table(model, group_name)
+    values <- rbindlist(list(
+      values,
+      tbl  
+    ))
+  }
+  
+  if (!all(is.na(names_covariates))) {
+    values[,1] <- rep(names_covariates, length(models))
+  }
+  colnames(values) <- c("variable", "OR", "lower", "upper", "group") 
+  
+  p <- ggplot(data = values,
+         mapping = aes(y = forcats::fct_inorder(f = rev(x = variable)), color = group)) +
+    geom_vline(xintercept = 1, linetype = "dashed", linewidth = 1) +
+    geom_errorbarh(mapping = aes(xmin = lower, xmax = upper), linewidth = 1.01,
+                   position = "dodge2") +
+    labs(x = "OR", y = "") +
+    scale_x_continuous(trans = "log2") +
+    ggtitle(plot_title)
+  return(p)
 }

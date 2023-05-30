@@ -149,28 +149,29 @@ library(multgee)
 #######
 
 ## Case 1
-model_gee_fit_1 <- geeglm(formula = ifelse(amd_status_fu == "no_amd", 0, 1) ~ ltalteru + lcsex + ltrauchp + ll_hdla + time_bl_fu,
+model_gee_fit_1 <- gee(formula = ifelse(amd_status_fu == "no_amd", 0, 1) ~ ltalteru + lcsex + ltcigreg_sf + ll_hdla + time_bl_fu,
     id = person_id,
     family = "binomial",
     corstr = "exchangeable",
     data = data_fit_long_1)
 
+
 ## Case 2
-model_gee_fit_2 <- geeglm(formula = ifelse(amd_status_fu == "no_amd", 0, 1) ~ ltalteru + lcsex + ltrauchp + ll_hdla + time_bl_fu,
+model_gee_fit_2 <- gee(formula = ifelse(amd_status_fu == "no_amd", 0, 1) ~ ltalteru + lcsex + ltcigreg_sf + ll_hdla + time_bl_fu,
        id = person_id,
        family = "binomial",
        corstr = "exchangeable",
        data = data_fit_long_2)
 
 ## Case 3
-#model_gee_fit_3 <- geeglm(formula = ifelse(amd_status_fu == "no_amd", 0, 1) ~ ltalteru + lcsex + ltrauchp + ll_hdla + time_bl_fu + amd_bl,
-#                          id = person_id,
-#                          family = "binomial",
-#                         corstr = "exchangeable",
-#                          data = data_fit_long_3)
+model_gee_fit_3 <- gee(formula = ifelse(amd_status_fu == "no_amd", 0, 1) ~ ltalteru + lcsex + ltcigreg_sf + ll_hdla + time_bl_fu + amd_bl,
+                          id = person_id,
+                          family = "binomial",
+                         corstr = "exchangeable",
+                          data = data_fit_long_3)
 
 ## Case 4
-model_gee_fit_4 <- geeglm(formula = ifelse(amd_status_fu == "no_amd", 0, 1) ~ ltalteru + lcsex + ltrauchp + ll_hdla + time_bl_fu,
+model_gee_fit_4 <- geeglm(formula = ifelse(amd_status_fu == "no_amd", 0, 1) ~ ltalteru + lcsex + ltcigreg_sf + ll_hdla + time_bl_fu,
        id = person_id,
        family = "binomial",
        corstr = "exchangeable",
