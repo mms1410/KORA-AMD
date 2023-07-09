@@ -1,0 +1,417 @@
+---
+title: "Abschlussbericht"
+author: "Sven Morlock, Leo Hoeltkemeyer"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+header-includes:
+- \usepackage[labelformat=empty]{caption}
+- \usepackage{booktabs}
+- \usepackage{longtable}
+- \usepackage{array}
+- \usepackage{multirow}
+- \usepackage{wrapfig}
+- \usepackage{float}
+- \usepackage{colortbl}
+- \usepackage{pdflscape}
+- \usepackage{tabu}
+- \usepackage{threeparttable}
+- \usepackage{threeparttablex}
+- \usepackage[normalem]{ulem}
+- \usepackage{makecell}
+- \usepackage{xcolor}
+---
+
+```{r setup, include=FALSE, echo = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(include = FALSE)
+source("preprocess.R")
+source("analysis-one-eye-conti.R")
+source("analysis-two-eyes-conti.R")
+source("analysis-two-eyes-ferris.R")
+library(kableExtra)
+library(xtable)
+library(knitr)
+```
+
+```{r, include = TRUE, echo = FALSE}
+grouped_table_amd <- function(dtbl_list, table_caption, group_captions, row_names = "AMD Status") {
+  #'
+  #'
+  #'
+  assert(length(group_captions) == length(dtbl_list))
+  
+
+  dtbl <- do.call(cbind, dtbl_list)
+  
+  dtbl_to_dframe <- function(dtbl) {
+    result <- as.data.frame(dtbl)
+    rownames(result) <- result[[row_names]]
+    result[[row_names]] <- NULL
+    return(result)
+  }
+  
+  dframes <- lapply(X = dtbl_list, FUN = dtbl_to_dframe)
+  dframe <- do.call(cbind, dframes)
+  ncols <- sapply(X = dtbl_list, FUN = ncol)
+  ncols <- ncols - 1 # adjust for row names
+  
+  group_caption_sections <- c(1, ncols)
+  names(group_caption_sections) <- c(" ", group_captions)
+  
+  kbl(dframe, longtable = T, booktabs = T, caption = table_caption) %>% 
+    add_header_above(group_caption_sections)
+}
+```
+
+
+# 1.
+
+## Hintergrund und Relevanz des Projekts
+Projektpartner sind PD Dr. Caroline Brandl, Prof. Dr. Iris Heid und Prof. Dr. Klaus Stark vom Lehrstuhl für Genetische Epidemiologie an der Universität Regensburg. Betreut wird das Projekt von Prof. Dr. Küchenhoff und Dr. Andreas Bender vom Institut für Statistik der LMU München.
+\newline
+Die altersbedingte Makuladegeneration (kurz: AMD) ist die Hauptursache schwerer Sehbehinderung bei Menschen über 60 Jahren in der westlichen Welt. Dabei gehen Sehzellen in der Netzhautmitte, die scharfes und farbiges Sehen vermitteln, zugrunde. AMD bezeichnet hierbei eine chronische Erkrankung, von der meistens beide Augen betroffen sind. Namensgebend ist die Bezeichnung Makula, diese meint die Stelle der Netzhaut, die für das scharfe Sehen verantwortlich ist. 
+Erstes Anzeichen der Krankheit ist verschwommenes oder verzerrtes Sehen. Im Spätstadium zeigt sich in der Mitte des Gesichtsfeldes nur noch ein dunkler Fleck, lediglich in den Randbereichen ist das Sehen noch erhalten. Dadurch ist zwar eine räumliche Orientierung noch möglich. Gesichter erkennen, Zahlen und Buchstaben entziffern, das wird jedoch mit der Zeit unmöglich.
+\newline
+Die Diagnose einer AMD stellt der Augenarzt nach verschiedenen Untersuchungen, meistens anhand der Färbung (Gradierung) einer Fundusaufnahme (Aufnahmen des Augenhintergrund, der Netzhaut).
+\newline
+Diese Einschätzung wird im Laufe dieses Projekts in Hinsicht der Phase der AMD interessant, hierzu ist die Information, dass die Einschätzung in diesem Projekt von gleich trainieren Augenärzten vorgenommen wurde, relevant.
+Mit dem Alter wird die Erkrankung häufiger: Etwa eine von 100 Personen zwischen 65 und 75 Jahren hat eine altersabhängige Makuladegeneration – aber 10 bis 20 von 100 Personen über 85 Jahre 1^[https://www.gesundheitsinformation.de/altersabhaengige-makuladegeneration-amd.html].
+
+## Das Projekt
+Die Datengrundlage für diese Arbeit liefert die kooperative Gesundheitsforschung in der Region Augsburg- kurz KORA. KORA ist eine Forschungsplattform, welche eine repräsentative Zufallsstichprobe aller 25-74 jährigen Einwohner der Region Augsburg untersucht hat. Die Teilnehmer wurden in regelmäßigen Abständen zu ihrer Gesundheit befragt bzw. nachuntersucht. Ziele des Projekts sind die Untersuchung von Herz-Kreislauf-Erkrankungen sowie weiteren chronischen Erkrankungen wie Diabetes und Lungenerkrankungen. In den Jahren 1999-2001 wurde eine Studie mit 4261 Probanden, die sog. KORA S4-Studie durchgeführt. Das Durchschnittsalter in dieser Studie betrug 49 Jahre, wobei 49% der Probanden männlich waren.
+\newline
+Zustätzlich wurde 14 Jahre später eine Follow-Up Studie für alle älteren Probanden (55-74 Jahre)-hier: FF4-Studie-, sowie 18 Jahre später eine Follow-Up Studie für alle jungen Erwachsenen (35-55 Jahre)- hier FIT-Studie- durchgeführt. Hierbei resultierten 678 Probanden der FF4-Studie mit sowohl einer baseline (KORA S4) als auch einer follow-up Aufnahme des Fundus. Für den die FIT-Studie gelten diese Voraussetzungen für 856 Probanden.
+\newline
+Der Datensatz, mit dem wir gearbeitet haben, ist identisch zur KORA-Studie, und enthält 75 unterschiedliche Variablen. Es wurden sowohl phänotypische Merkmale wie Alter, Gewicht, BMI, Geschlecht und Blutuntersuchungen durchgeführt als auch genotypische Merkmale wie zu den oben erwähnten Risikoallelen erfasst. Einige Variablen beschäftigen sich mit dem Risikofaktor Rauchen, hierzu wurde nicht nur der Status (ja/nein, derzeitig/ehemalig), sondern auch das Rauchverhalten in Regelmässigkeit und Menge abgefragt.
+Zusätzlich führten die Projektpartner eine Variable „amd_status“ ein, die die Schwere der Erkrankung einteilt (hier: früh/mittel/spät/keine). Zur Definition der späten AMD gibt es in verschiedenen klinischen und epidemiologischen Studien verschiedene Definitionen, die sich im Kern der Aussage aber ähneln. Im Bereich der frühen AMD unterscheiden sich diese Definitionen aber grundlegender, beispielsweise beim Vergleich der Severity Scale-Definition mit der clinical classification-Definition im Bereich Prävalenz.
+\newline
+Die Lösung dieser Problematik bildet die Variable „amd_status“, plus einige Grundregeln:
+
+- 1. Wenn beide Augen bewertbare Bilder zugeordnet haben, wird der Status des mehr beschädigten Auges benutzt.
+- 2. Gibt es nur eine bewertbare Aufnahme, so wird diese verwendet.
+- 3. Es wurden nur Probanden analysiert, von denen mindestens ein Baseline und ein follow-up Auge analysierbar sind. Das reduzierte die Probandenanzahl auf 1513.
+- 4. Für jeden Probanden gibt es 4 Formen eines Events, basierend auf dem Übergang zwischen baseline und follow-up Aufnahmen:
+
+- Fall 1, Klassifikation „Inzidenz frühe AMD“: keine AMD bei baseline und frühe AMD bei follow-up
+- Fall 2, Klassifikation „Inzidenz späte AMD“, Definition 1: keine AMD bei baseline und späte AMD bei follow-up
+- Fall 3, Klassifikation „Inzidenz frühe AMD“, Definition 2: keine AMD/frühe AMD bei baseline und späte AMD bei follow-up
+- Fall 4, Progression von früher zu später AMD: frühe AMD bei baseline und späte AMD bei follow-up
+
+## Projekt Struktur
+
+Die Analyse wurde mit der Software R, Version `{r}paste0(R.version$major , ".", R.version$minor)` durchgeführt und teilt sich auf mehrere Skripte, die im Ordner `R`im Projektorderner zu finden sind. Für Funktionen die in den verschiedenen Skripten benutzt werden muss das Skript `functions.R` ausgeführt werden. Die Daten werden im Skript `preprocess.R` eingelesen und in den Skripten `analysis-one-eye-<ferris|conti>.R` bzw. `analysis-two-eyes-<ferris|conti>.R`wird in einem weiteren Schritt die eigentlich Analyse durchgeführt.
+\newline
+Im Ordner `data` befinden sich die Daten und eine txt Datei `vars_to_select` die die aufzunehmenden Variablen und deren R-interne Skalierung (numeric vs. factor) enthält.
+
+## Datenaufbereitung
+Die Analyse wurde durchgeführt für den Datesatz `20230217_KORA_S4_FF4_FIT_StatLab.sav`. Dabei wurde als Kovariablen die Variablen `ltalteru` zur Altersbestimmung verwendet, `lcsex` um das Geschlecht der Probanden zu bestimmen, `ll_hdla` um den Blutspiegel zu beschreiben, `ltcigreg_sf` für das Raucherverhalten und die Variable `GrsWeightedByBeta` für den GRS Score. Ausserdem wurden die Variablen `time_bl_fu` erstellt um die Zeit zwischen Datenerhebung zur Baseline und zum Follow-Up Zeitpunk zu messen und die Dummyvariable `amd_bl`' um in Fall 3 den AMD Status zur Baseline (Keine AMD vs. Frühe AMD) zu erfassen.
+Alter und  HDLA Werte wurden zentriert.
+\newpage
+
+# Deskription
+
+Alter: Durchschnittsaler 49.19 Jahre
+\newline
+Geschlecht: 2090 Probanden männlich, 2171 weiblich, 49.05 % männliche Probanden
+```{r graphic-leo1, include = TRUE, echo = FALSE}
+include_graphics("../assets/leo-gewich.jpeg")
+include_graphics("../assets/leo-groesse.jpeg")
+```
+\newline
+Variable zur Beschreibung Alkoholkonsum:
+Kategorien: 1 = kein Alkoholkonsum 2 = Alkoholkonsum > 0 - < 20 g/Tag 3 = Alkoholkonsum ? 20 - < 40 g/Tag 4 = Alkoholkonsum ? 40 - < 60 g/Tag 5 = Alkoholkonsum ? 60 - < 80 g/Tag 6 = Alkoholkonsum mehr als 80 g/Tag
+\newline
+Verteilung im Datensatz KORA S4:
+
+- 1:1181
+- 2:1690
+- 3:809
+- 4:347
+- 5:119
+- 6:87 
+
+Variable zur Beschreibung Passiv-Raucher:
+Kategorien: 0 = weder Raucher, noch passiv  Raucher  1= Nichtraucher, aber z. Z. passiv Raucher  2 = Ex -Raucher und  nicht passiv Raucher  3 = Ex- Raucher und  z. Z. passiv Raucher  4 = aktiv Raucher
+\newline
+Verteilung im Datensatz KORA S4:
+
+- 0:1281
+- 1:530
+- 2:874
+- 3:455
+- 4:1102
+\newpage
+
+## AMD Status
+
+Tabelle 1 gibt einen Überblick über die Anzahl an AMD Klassifikationen (Continental Score). Die Tabelle ist unterteilt in eine Betrachtung des schlechteren Auges ("Schlechteste Auge") und eine Betrachtung beider Augen ("Beide Augen"). Beide Gruppen unterteilen sich nochmal, je nachdem of der FIT oder der FF4 Datensatz betrachtet wird bzw. ob der AMD Status zur Baseline ("BL") oder zum Follow-Up Zeitpunk ("FU") betrachtet wird.Tabelle 2 die ergibt sich wenn der AMD Status nach dem Ferris Score klassifiziert wird.
+
+```{r table-amd-continental, include = TRUE, echo = FALSE}
+kbl(
+  cbind(
+    get_table_amd_count(data_fit, data_ff4),
+    get_table_amd_count(data_fit_conti_long,
+                    data_ff4_conti_long,
+                    bl_amd_col_ff4 = "amd_status_bl",
+                    bl_amd_col_fit = "amd_status_bl",
+                    fu_amd_col_ff4 = "amd_status_fu",
+                    fu_amd_col_fit = "amd_status_fu",
+                    row_names = c("Keine AMD", "Frühe AMD", "Späte AMD"))
+  ),
+  caption = "Anzahl AMD Fälle (Continental Score)",
+  booktabs =T, longtable = T) %>% 
+  add_header_above(c(" " = 1, "FIT" = 2, "FF4" = 2, "FIT" = 2, "FF4" = 2)) %>% 
+  add_header_above(c(" " = 1, "Schlechteste Auge" = 4, "Beide Augen" = 4))
+  
+```
+
+```{r table-amd-ferris, include = TRUE, echo = FALSE}
+kbl(
+  cbind(
+  get_table_amd_count(data_fit, data_ff4, 
+                      bl_amd_col_ff4 = "LT_ferris_worst_eye",
+                      bl_amd_col_fit = "LT_ferris_worst_eye",
+                      fu_amd_col_ff4 = "U3T_ferris_worst_eye",
+                      fu_amd_col_fit = "PT_ferris_worst_eye",
+                      row_names = c("Keine AMD", "Frühe AMD", "Späte AMD")),
+  get_table_amd_count(data_fit_ferris_long,
+                    data_ff4_ferris_long,
+                    bl_amd_col_ff4 = "amd_status_bl",
+                    bl_amd_col_fit = "amd_status_bl",
+                    fu_amd_col_ff4 = "amd_status_fu",
+                    fu_amd_col_fit = "amd_status_fu",
+                    row_names = c("Keine AMD", "Frühe AMD", "Späte AMD"))),
+  caption = "Anzahl AMD Fälle (Ferris Score)",
+  booktabs =T, longtable = T) %>% 
+  add_header_above(c(" " = 1, "FIT" = 2, "FF4" = 2, "FIT" = 2, "FF4" = 2)) %>% 
+  add_header_above(c(" " = 1, "Schlechteste Auge" = 4, "Beide Augen" = 4))
+```
+
+
+Insgesamt ist der Anteil an beobachteten Fällen mit einer späten AMD zum Follow-Up Zeitpunk im Vergleich zu früher AMD gering.
+Die folgenden Tabellen 3 bis 10 zeigen den AMD Status zur Baseline und zum Follow-Up der jeweiligen Fälle. Ausserdem wird der prozentuale Anteil der jeweiligen Anzahl zum Follow-Up dargestellt.
+Tabelle 3 und 4 zeigen AMD Fälle derjenigen Probanden, die zur Baseline keine AMD hatten, Tabellen 5 und 6 Fall 2, Tabellen 7 und 8 Fall 3 und Tabellen 9 und 10 Fall 4.
+Duch die geringe Anzahl an Beobachungen später AMD konnten mehrere AMD-Übergänge nicht modelliert werden. Teilweise ergab sich, dass vorallen in den Fällen 2 und 3 bei Betrachtung beider Augen der Anteil später AMD zu früher oder keiner AMD zu gering war und dadurch eine Modellanpassung numerisch nicht möglich war bzw. die jeweiligen Routinen der Funktion `gee` aus dem gleichnamigen package mit einer Fehlermeldung abbrechen.
+```{r amd-conti-1-fit, include = TRUE, echo = FALSE}
+grouped_table_amd(list(
+  get_summary(data_fit_conti_1, bl_col = "LT_conti_worst_eye", fu_col = "PT_conti_worst_eye"),
+  get_summary(data_fit_conti_long_1, bl_col = "amd_status_bl", fu_col = "amd_status_fu")),
+  table_caption = "Fall 1: Inzidenz frühe AMD,  FIT ",
+  group_captions = c("Schlechteste Auge", "Beide Augen")
+  )
+```
+\newpage
+```{r amd-conti-1-ff4, include = TRUE, echo = FALSE}
+grouped_table_amd(list(
+  get_summary(data_ff4_conti_1, bl_col = "LT_conti_worst_eye", fu_col = "U3T_conti_worst_eye"),
+  get_summary(data_ff4_conti_long_1, bl_col = "amd_status_bl", fu_col = "amd_status_fu")),
+  table_caption = "Fall 1: Inzidenz frühe AMD,  FF4 ",
+  group_captions = c("Schlechteste Auge", "Beide Augen")
+  )
+```
+
+
+```{r amd-conti-2-fit, include = TRUE, echo = FALSE}
+grouped_table_amd(list(
+  get_summary(data_fit_conti_2, bl_col = "LT_conti_worst_eye", fu_col = "PT_conti_worst_eye"),
+  get_summary(data_fit_conti_long_2, bl_col = "amd_status_bl", fu_col = "amd_status_fu")),
+  table_caption = "Fall 2: Inzidenz späte AMD (Definition 1), FIT",
+  group_captions = c("Schlechteste Auge", "Beide Augen")
+  )
+```
+
+```{r amd-conti-2-ff4, include = TRUE, echo = FALSE}
+grouped_table_amd(list(
+  get_summary(data_ff4_conti_2, bl_col = "LT_conti_worst_eye", fu_col = "U3T_conti_worst_eye"),
+  get_summary(data_ff4_conti_long_2, bl_col = "amd_status_bl", fu_col = "amd_status_fu")),
+  table_caption = "Fall 2: Inzidenz späte AMD (Definition 1), FIT",
+  group_captions = c("Schlechteste Auge", "Beide Augen")
+  )
+```
+
+```{r amd-conti-3-fit, include = TRUE, echo = FALSE}
+grouped_table_amd(list(
+  get_summary(data_fit_conti_3, bl_col = "LT_conti_worst_eye", fu_col = "PT_conti_worst_eye"),
+  get_summary(data_fit_conti_long_3, bl_col = "amd_status_bl", fu_col = "amd_status_fu")),
+  table_caption = "Fall 3: Inzidenz späte AMD (Definition 2), FIT",
+  group_captions = c("Schlechteste Auge", "Beide Augen")
+  )
+```
+
+```{r amd-conti-3-ff4, include = TRUE, echo = FALSE}
+grouped_table_amd(list(
+  get_summary(data_ff4_conti_3, bl_col = "LT_conti_worst_eye", fu_col = "U3T_conti_worst_eye"),
+  get_summary(data_ff4_conti_long_3, bl_col = "amd_status_bl", fu_col = "amd_status_fu")),
+  table_caption = "Fall 3: Inzidenz späte AMD (Definition 2), FIT",
+  group_captions = c("Schlechteste Auge", "Beide Augen")
+  )
+```
+\newpage
+```{r amd-conti-4-fit, include = TRUE, echo = FALSE}
+grouped_table_amd(list(
+  get_summary(data_fit_conti_4, bl_col = "LT_conti_worst_eye", fu_col = "PT_conti_worst_eye"),
+  get_summary(data_fit_conti_long_4, bl_col = "amd_status_bl", fu_col = "amd_status_fu")),
+  table_caption = "Fall 4: Progression späte AMD, FIT",
+  group_captions = c("Schlechteste Auge", "Beide Augen")
+  )
+```
+
+```{r amd-conti-4-ff4, include = TRUE, echo = FALSE}
+grouped_table_amd(list(
+  get_summary(data_ff4_conti_4, bl_col = "LT_conti_worst_eye", fu_col = "U3T_conti_worst_eye"),
+  get_summary(data_ff4_conti_long_4, bl_col = "amd_status_bl", fu_col = "amd_status_fu")),
+  table_caption = "Fall 4: Progression späte AMD, FIT",
+  group_captions = c("Schlechteste Auge", "Beide Augen")
+  )
+```
+
+```{r, include = TRUE, echo = FALSE}
+
+```
+
+
+```{r, include = TRUE, echo = FALSE}
+
+```
+
+# Modellierung Risikofaktoren
+
+
+
+Der Einfluss der Risikofaktoren wurde für den Fall das das schlechtere Auge betrachtet wurde mit einer logistischen Regression modelliert. Der dabei verwendete Modellierungsansatz ist ein generalisiertes lineares Regressionsmodell (GLM) das durch eine Verteilungsannahme der Zielvariable (in diesem Fall der AMD Status), eine Strukturannahme bzgl. der Einflussgrößen und eine Link- bzw. Responsefunktion beschrieben wird. Hier wird wegen der binären Ausprägung der Zielvariablen (frühe AMD vs. keine fühe AMD) eine Binomialverteilung angenommmen. Die Strukturannahme ist ähnlich zum linearen Regressionsmodell ein additiver Einfluss der Kovariablen auf die erwartete Einflussgröße. Als Linkfunktion wird in der logistische Regression ein Logit-Link verwendet.
+\newline
+Zusammenfassend lassen sich die Annahmen in den folgenden drei Gleichungen darstellen, wobei i für die i-te Beobachtung steht, $\eta$ den für den linearen Prädiktor und $y$ die Zielgrösse ist (vgl. Fahrmeir et. al. 2021 S.284 ff.)
+
+$$y_{i} \sim B(\pi_{i})$$
+$$\mathbb{E}[\eta_{i}] = \beta_{0} + \beta_{1}x_{i, Alter} + \beta_{2}x_{i, Geschlecht}+\beta_{3}x_{i,Zeit} +\beta_{4}x_{i,Raucher}+\beta_{5}x_{i,HDL}$$
+$$\pi_{i} = \frac{exp(\eta_{i})}{1+exp(\eta_{i})}$$
+
+Durch diese drei Annahmen ergibt sich ein lineares Modell für die logarithmierten Chancen bzw. log-odds der Einflussvariablen. In diesem Fall haben die Kovariablen die folgende Interpretation: Eröht sich die Einflussvariable um eine Einheit, dann erhöht sich ceteris paribus das erwartete log-odds Verhältnis um den Faktor $exp(\hat{\beta})$, wobei $\hat{\beta}$ den geschätzten Koeffizienten bezeichnet.
+\newline
+Ein Vorteil von marginalen Modellen ist, dass eine Interpretation der Parameter auf Populationebene möglich ist.
+Die folgenden Tabellen vergleichen die geschätzten Paramter, wobei für GEE Modelle zusätzlich Konfidenzintervalle angegeben sind die mit robust geschätzte Standardfelhlern berechnet wurden.
+\newline
+
+```{r fit-1,include = FALSE, echo = FALSE}
+grouped_table_models(model_gee = model_gee_fit_conti_1,
+                     model_glm =  model_glm_fit_conti_1,
+                     table_caption = "Inzidenz frühe AMD (FIT)",
+                     group_captions = c("Log. Regression", "GEE Modell"),
+                     selection = c("ltalteru", "lcsexF", "time_bl_fu", "ltcigreg_sfcurr.", "ltcigreg_sfformer", "ll_hdla"),
+                     row_names = c("Alter", "Geschlecht", "Zeit BL-FU", "Nichtraucher vs. Raucher",
+                                   "Nichtraucher vs. Ex-Raucher", "HDL"))
+```
+\newpage
+```{r fit-1-grs,include = FALSE, echo = FALSE}
+grouped_table_models(model_gee = model_gee_fit_conti_1_grs,
+                     model_glm =  model_glm_fit_conti_1_gls,
+                     table_caption = "Inzidenz frühe AMD (FIT)",
+                     group_captions = c("Log. Regression", "GEE Modell"),
+                     selection = c("ltalteru", "lcsexF", "time_bl_fu",
+                                   "ltcigreg_sfcurr.", "ltcigreg_sfformer", "ll_hdla", "GrsWeightedByBeta"),
+                     row_names = c("Alter", "Geschlecht", "Zeit BL-FU", "Nichtraucher vs. Raucher",
+                                   "Nichtraucher vs. Ex-Raucher", "HDL", "GRS"))
+```
+
+
+```{r, include = TRUE, echo = FALSE}
+```
+
+```{r ff4-1, include = FALSE, echo = FALSE}
+grouped_table_models(model_gee = model_gee_ff4_conti_1,
+                     model_glm =  model_glm_ff4_conti_1,
+                     table_caption = "Inzidenz frühe AMD (FF4)",
+                     group_captions = c("Log. Regression", "GEE Modell"),
+                     selection = c("ltalteru", "lcsexF", "time_bl_fu",
+                                   "ltcigreg_sfcurr.", "ltcigreg_sfformer", "ll_hdla"),
+                     row_names = c("Alter", "Geschlecht", "Zeit BL-FU", "Nichtraucher vs. Raucher",
+                                   "Nichtraucher vs. Ex-Raucher", "HDL"))
+```
+
+```{r ff4-1-grs, include = FALSE, echo = FALSE}
+grouped_table_models(model_gee = model_gee_ff4_conti_1_grs,
+                     model_glm =  model_glm_ff4_conti_1_gls,
+                     table_caption = "Inzidenz frühe AMD (FF4)",
+                     group_captions = c("Log. Regression", "GEE Modell"),
+                     selection = c("ltalteru", "lcsexF", "time_bl_fu",
+                                   "ltcigreg_sfcurr.", "ltcigreg_sfformer", "ll_hdla", "GrsWeightedByBeta"),
+                     row_names = c("Alter", "Geschlecht", "Zeit BL-FU", "Nichtraucher vs. Raucher",
+                                   "Nichtraucher vs. Ex-Raucher", "HDL", "GRS")
+                     )
+```
+\newpage
+```{r ff4-3, include = FALSE, echo = FALSE}
+grouped_table_models(model_gee = model_gee_ff4_conti_3,
+                     model_glm =  model_glm_ff4_conti_3,
+                     table_caption = "Inzidenz späte AMD (FF4, Definition 2)",
+                     group_captions = c("Log. Regression", "GEE Modell"),
+                     selection = c("ltalteru", "lcsexF", "time_bl_fu",
+                                   "ltcigreg_sfcurr.", "ltcigreg_sfformer", "ll_hdla", "time_bl_fu"),
+                     row_names = c("Alter", "Geschlecht", "Zeit BL-FU", "Nichtraucher vs. Raucher", "Nichtraucher vs. Ex-Raucher", "HDL", "AMD Baseline"))
+```
+
+\newpage
+# Anhang Grafiken
+```{r plot-ff4-1, include = TRUE, echo = FALSE}
+#plot_gee_vs_glm(model_gee_ff4_conti_1, model_glm_ff4_conti_1, gg_title = "Inzidenz Frühe AMD FF4")
+gtbl <- grouped_table_models(model_gee = model_gee_ff4_conti_1,
+                     model_glm =  model_glm_ff4_conti_1,
+                     table_caption = "Inzidenz frühe AMD (FF4)",
+                     group_captions = c("Log. Regression", "GEE Modell"),
+                     selection = c("ltalteru", "lcsexF", "time_bl_fu", "ltcigreg_sfcurr.", "ltcigreg_sfformer", "ll_hdla"),
+                     row_names = c("Alter", "Männlich vs. Weiblich", "Zeit BL-FU", "Nichtraucher vs. Raucher",
+                                   "Nichtraucher vs. Ex-Raucher", "HDL"))
+grouped_table_to_knitr(gtbl, table_caption = "Modellvergleich Inzidenz frühe AMD (FF4) I")
+save_tbl(gtbl, table_name = "Models-FF4-1", table_title = "Modellvergleich Inzidenz frühe AMD (FF4) I")
+plot_gee_vs_glm(gtbl, gg_title = "Risikofaktoren Inzidenz frühe AMD (FF4) I")
+gg_save("OR-FF1-1")
+```
+\newpage
+```{r plot-ff4-1-grs, include = TRUE, echo = FALSE}
+#plot_gee_vs_glm(model_gee_ff4_conti_1_grs, model_glm_ff4_conti_1_gls, gg_title = "Inzidenz Frühe AMD FF4\n(Mit GRS)")
+gtbl <- grouped_table_models(model_gee = model_gee_ff4_conti_1_grs,
+                     model_glm =  model_glm_ff4_conti_1_gls,
+                     table_caption = "Inzidenz frühe AMD (FF4 mit GRS)",
+                     group_captions = c("Log. Regression", "GEE Modell"),
+                     selection = c("GrsWeightedByBeta", "ltalteru", "lcsexF", "time_bl_fu",
+                                   "ltcigreg_sfcurr.", "ltcigreg_sfformer", "ll_hdla"),
+                     row_names = c("GRS", "Alter", "Männlich vs. Weiblich", "Zeit BL-FU", "Nichtraucher vs. Raucher",
+                                   "Nichtraucher vs. Ex-Raucher", "HDL"))
+
+grouped_table_to_knitr(gtbl, table_caption = "Modellvergleich Inzidenz frühe AMD (FF4) II")
+save_tbl(gtbl, table_name = "Models-FF4-2", table_title = "Modellvergleich Inzidenz frühe AMD (FF4) II")
+plot_gee_vs_glm(gtbl, gg_title = "Risikofaktoren Inzidenz frühe AMD (FF4) II")
+gg_save("OR-FF4-2")
+```
+\newpage
+```{r plot-fit-1, include = TRUE, echo = FALSE}
+#plot_gee_vs_glm_1(model_gee_fit_conti_1, model_glm_fit_conti_1, gg_title = "Inzidenz Frühe AMD FIT")
+gtbl <- grouped_table_models(model_gee = model_gee_fit_conti_1,
+                     model_glm =  model_glm_fit_conti_1,
+                     table_caption = "Inzidenz frühe AMD (FIT)",
+                     group_captions = c("Log. Regression", "GEE Modell"),
+                     selection = c("ltalteru", "lcsexF", "time_bl_fu", "ltcigreg_sfcurr.", "ltcigreg_sfformer", "ll_hdla"),
+                     row_names = c("Alter", "Männlich vs. Weiblich", "Zeit BL-FU", "Nichtraucher vs. Raucher",
+                                   "Nichtraucher vs. Ex-Raucher", "HDL"))
+grouped_table_to_knitr(gtbl, table_caption = "Mode llvergleich Inzidenz frühe AMD (FIT) I")
+save_tbl(gtbl, table_name = "Models-FIT-1", table_title = "Modellvergleich Inzidenz frühe AMD (FIT) I")
+plot_gee_vs_glm(gtbl, gg_title = "Risikofaktoren Inzidenz frühe AMD (FIT) I")
+gg_save("OR-FIT-1")
+```
+\newpage
+```{r plot-fit-1-grs, include = TRUE, echo = FALSE}
+#plot_gee_vs_glm(model_gee_fit_conti_1_grs, model_glm_fit_conti_1_gls, gg_title = "Inzidenz Frühe AMD FIT \n(Mit GRS)")
+gtbl <- grouped_table_models(model_gee = model_gee_fit_conti_1_grs,
+                     model_glm =  model_glm_fit_conti_1_gls,
+                     table_caption = "Inzidenz frühe AMD (FF4 mit GRS)",
+                     group_captions = c("Log. Regression", "GEE Modell"),
+                     selection = c("GrsWeightedByBeta","ltalteru", "lcsexF", "time_bl_fu",
+                                   "ltcigreg_sfcurr.", "ltcigreg_sfformer", "ll_hdla"),
+                     row_names = c("GRS", "Alter", "Männlich vs. Weiblich", "Zeit BL-FU", "Nichtraucher vs. Raucher",
+                                   "Nichtraucher vs. Ex-Raucher", "HDL"))
+grouped_table_to_knitr(gtbl, table_caption = "Modellvergleich Inzidenz frühe AMD (FIT) II")
+save_tbl(gtbl, table_name = "Models-FIT-2", table_title = "Modellvergleich Inzidenz frühe AMD (FIT) II")
+plot_gee_vs_glm(gtbl, gg_title = "Risikofaktoren Inzidenz frühe AMD (FIT) II")
+gg_save("OR-FIT-2")
+```

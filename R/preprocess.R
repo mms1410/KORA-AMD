@@ -59,15 +59,20 @@ data[, `:=` (LT_conti_worst_eye  = factor_pmax(LTConti_LI_2_sf, LTConti_RE_2_sf)
 
 data$person_id <- as.factor(seq(from = 1, to = nrow(data)))
 data$lcsex <- fct_recode(data[["lcsex"]], !!!c("M" = "1", "F" = "2"))
+data$ltcigreg_sf <- fct_recode(data[["ltcigreg_sf"]], !!!c("curr." = "1",
+                                                         "curr." = "2",
+                                                         "former" = "3",
+                                                         "never" = "4"))
+data$ltcigreg_sf <- relevel(data$ltcigreg_sf, ref = "never")
 
 data <- rename_conti_scores(data)
 data <- rename_ferris_scores(data)
 #-------------------------------------------------------------------------------
 ## center variables
-#data$ltalteru  <- data$ltalteru - mean(data$ltalteru, na.rm = TRUE)
-#data$ll_hdla <- data$ll_hdla -mean(data$ll_hdla, na.rm = TRUE)
-#data$PTALTERU <- data$PTALTERU -mean(data$PTALTERU, na.rm = TRUE)
-#data$u3talteru <- data$u3talteru -mean(data$u3talteru, na.rm = TRUE)
+data$ltalteru  <- data$ltalteru - mean(data$ltalteru, na.rm = TRUE)
+data$ll_hdla <- data$ll_hdla -mean(data$ll_hdla, na.rm = TRUE)
+data$PTALTERU <- data$PTALTERU -mean(data$PTALTERU, na.rm = TRUE)
+data$u3talteru <- data$u3talteru -mean(data$u3talteru, na.rm = TRUE)
 #-------------------------------------------------------------------------------
 # FIT: 506 & FF4: 350
 # we know that if ferris score is na then also conti score and vice versa.

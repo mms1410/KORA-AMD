@@ -1,46 +1,361 @@
 ---
-title: "Kora-AMD"
-author: "Matina Kasiouri, Sven Morlock, Leo Höltkemeyer"
+title: "Abschlusspräsentation \n Gruppe Augen"
+author: "Leo Höltkemeyer und Sven Morlock"
+subtitle: "Projektpartner: PD Dr. Caroline Brandl, Prof. Dr. Iris Heid, Prof. Dr. Klaus Stark \n \n Betreuer: Prof. Dr. Küchenhoff, Dr. Andreas Bender"
 date: "2023-04-04"
+bibliography: ../archive/references/references.bib
 output:
   beamer_presentation: default
-  includes:
-    header-includes:
-      - \usepackage[]{algorithm2e}
+  toc: true
+  slide_level: 2
+header-includes:
+  - \usepackage[]{algorithm2e}
+  - \usepackage{relsize}
+  - \usepackage{multicol}
+  - \usepackage[font=small,labelfont=bf]{caption}
+  - \setbeamertemplate{navigation symbols}{}
+  - \setbeamertemplate{footline}[page number]
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, echo = FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+library(knitr)
+library(ggplot2)
+library(haven)
+library(data.table)
+library(checkmate)
+library(forcats)
+
+source("preprocess.R")
+source("functions.R")
+source("analysis-one-eye-conti.R")
+source("analysis-two-eyes-conti.R")
+source("plots.R")
+
+theme_set(theme_linedraw())
+options(ggplot2.discrete.colour= c("red", "blue"))
 ```
 
-## Einführung
+
+# Einführung
 
 
-## Logistische regression
-- $log(p/(1-p)) = h(\mathbf{\beta} \mathbf{X_{i}}) + \epsilon_{i}$
-- $y_{i} \in \{0,1\}$
-- $\epsilon_{i} \sim Binomial$
+## Hintergrund „AMD“
+
+- Altersbedingte Makuladegeneration (AMD)
+
+- Chronische Erkrankung meist beider Augen
+
+- Makula = Stelle der Netzhaut, die für das scharfe Sehen verantwortlich ist
+
+- Häufigste Ursache für starke Sehbehinderungen bei älteren Menschen
+
+- 1 von 100 Personen zw. 65 und 75 Jahre, 10-20 von 100 über 85 Jahre
 
 
-## Marginales Modell I
-### Motivation
-- Berechnung der gemeinsamen Dichte nicht einfach
-- GEE1 Liang/Zeger (1986)
-- Lipsitz, Laird, and Harrington (1991)
+## Das Projekt- die KORA Studie
+
+- Basis ist KORA Studie (kooperative Gesundheitsforschung in der Region Augsburg)
+
+- Forschungsplattform, welche eine repräsentative Zufallsstichprobe aller 25-74 jährigen Einwohner der Region untersucht
+
+- Kora S4 Studie: n= 4261 Probanden; 49,18 J; 49% männlich, sowie ihre Follow-Ups (FIT bzw FF4)
 
 
+## Der Datensatz
 
-## Marginales Modell II
+- Unser Datensatz: identisch zur Studie; 75 Variablen
 
-- Korrelation Nuisance Parameter
-  - "Arbeitsvarianz"
-  - Keine formalen Methoden wie z.B LR-Test, Wald etc...
-- Korrelationsstruktur muss nicht korrekt spezifiziert sein
-  - Regressionsparamter Konsistent und asymptotihsc Normal
+- Generierung verschiedener phänotypische und genotypischen Daten
 
-## Marginales Modell II
+- Verschiedenste Erhebungen zu Alter, Gewicht, Geschlecht, Blutuntersuchungen sowie Risikoallelen 
 
-Gee Algorithmus nach Liang, Zeger (1986)
+- Risikofaktor „Rauchen“ in verschiedenen Variablen
+
+- Variable zur Beschreibung „amd status“
+
+## KORA Studie
+![](../assets/bild_leo.png)
+
+## AMD Status
+
+- 4 mögliche Events für Probanden beim Übergang von baseline zu follow-up AMD:
+
+  - Inzidenz frühe AMD: keine AMD bei baseline und frühe AMD bei follow-up
+  
+  - Inzidenz späte AMD (defintion 1) für keine AMD $\rightarrow$ späte AMD
+  
+  - Inzidenz späte AMD (definition 2) für keine AMD/frühe AMD $\rightarrow$  späte AMD
+  
+  - Progression von früher zu später AMD für frühe AMD $\rightarrow$  späte AMD
+
+# Methoden
+
+## Generalisierte Lineare Modelle
+
+- Lineare Modelle u.U. nicht immer geeignet:
+
+  - Zähldaten
+  
+  - **Binäre daten**
+  
+- $\rightsquigarrow$ Nelder und Wedderburn (1972): "Generalized Linear Models"
+
+- Verteilung der Zielvariablen (bzw. stochastische Komponente) muss in der einparametrigen Exponentialfamilie liegen.
+
+- Ermöglicht statistische Inferenz in einheitlichen Rahmen
+
+## Logistische Regression I
+
+- k Kovariablen, n Beobachtungen: $y_{i} \in \{0,1\}$ (Binär)
+
+- Modellierung der bedingten Wahrscheinlichkeit: $\pi_{i} = \mathbb{P}(y_{i} = 1 | x_{i1},...x_{ik})$
+
+- Response Funktion: $h(y) = \frac{exp(\eta)}{1+exp{(\eta)}}$
+
+  - $\eta_{i} = \boldsymbol{x_{i}}^{T}\boldsymbol{\beta}$
+
+- Verteilungsannahme: $y_{i} \sim Bernoulli(\pi)$
 
 
+## Logistische Regression II (Parameter Interpretation)
 
+- Parameter lassen sich darstellen als:
+
+ $\nolinebreak{exp(\beta_{j}) = \underbrace{\frac{\mathbb{P}(y_{i} = 1|x_{i1},..,x_{ij},...x_{ik})}{\mathbb{P}(y_{i} = 0|x_{i1},..,x_{ij},...x_{ik})}}_{\text{Chance}} /  \underbrace{\frac{\mathbb{P}(y_{i} = 1|x_{i1},..,x_{ij}+1,...x_{ik})}{\mathbb{P}(y_{i} = 0|x_{i1},..,x_{ij}+1,...x_{ik})}}_{\text{Chance}}}$
+
+
+-   $\beta > 0 \rightsquigarrow$ Chance $\mathbb{P}(y_{i}=1)/\mathbb{P}(y_{i}=0)$ steigt.
+
+-   $\beta = 0 \rightsquigarrow$ Chance $\mathbb{P}(y_{i}=1)/\mathbb{P}(y_{i}=0)$ unverändert.
+
+-   $\beta < 0 \rightsquigarrow$ Chance $\mathbb{P}(y_{i}=1)/\mathbb{P}(y_{i}=0)$ fällt.
+
+## Logistische Regression III (Parameter Schätzung)
+
+- Idr. wird numerisch Optimiert weil keine Lösung in geschlosseneer Form.
+
+- Fisher-Scoring
+
+  - iterative Berechnung von $\beta$.
+  
+  - unter Regularitätsbedingungen konvergiert $\beta$ gegn ML-Schätzer.
+  
+  - das berechnete Maximum ist in diesem Fall auch globales Maximum.
+
+## Longitudinale Daten I
+
+- Betrachtet man jedes Auge einzeln, dann ergeben sich Cluster für je 2 Augen pro Person.
+
+  - $\rightsquigarrow$ Beobachtungen nicht unabhängig voneinander.
+  
+  - $\rightsquigarrow$ Korrelation innerhalb der Cluster zu berücksigtigen.
+  
+- Mögliche Modellierungsansätze: 
+
+  - Modelle mit zufälligen Effekten (random effects model, GMM)
+  
+  - Marginale Modelle / **GEE** (Generalized Estimating Equation)
+  
+## Longitudinale Daten II (GEE)
+
+- Liang und Zeger (1986): "Longitudinal
+data analysis using generalized linear models."
+
+- Seperate Modellierung von Schätzgleichungen und Assoziation zwischen Parametern.
+
+- Primäres Interesse an $\boldsymbol{\beta}$, Varianz: "Nuisance" die zu berücksichtigen ist.
+
+- Arbeits-Kovarianz: $V(\boldsymbol{\alpha})$
+
+## Longitudinale Daten III (GEE)
+
+- Konsistente Schätzer für $\boldsymbol{\beta}$ wenn  $V(\boldsymbol{\alpha})$ inkorrekt spezifiziert.
+
+  - Effizienz dann aber typischerweise verschlechtert.
+  
+- GEE-Schätzgleichung verallgemeinerte Score-Gleichung der GLM Modelle.
+
+- Iterative Optimierung der **Quasi**-likelihood.
+
+  - IRLS: Iteratively Reweighted Least Squares
+  
+- Marginale Interpretation möglich.
+
+  - (vs. bedingte Interpretation in GMM).
+  
+# Ergebnisse
+
+## Kummulative Inzidenz frühe AMD FIT
+```{r}
+kable(get_summary(data_fit_conti_1, bl_col = "LT_conti_worst_eye", fu_col = "PT_conti_worst_eye",
+                  bl_name <- "Baseline", fu_name = "Follow-Up"),
+      caption = "Per Proband")
+
+kable(get_summary(data_fit_conti_long_1, bl_col = "amd_status_bl", fu_col = "amd_status_fu",
+                  bl_name <- "Baseline", fu_name = "Follow-Up"),
+      caption = "Per Auge")
+```
+
+## Kummulative Inzidenz frühe AMD FIT
+```{r}
+plot_gee_vs_glm(model_gee_fit_conti_1, model_glm_fit_1, gg_title = "Kummulative Inzidenz frühe AMD, FIT (Ohne GRS)",
+                names_covariates = c("Alter BL \n [pro 10 Jahre]",
+                                     "Geschlecht \n [Weiblich. vs. Männlich]",
+                                     "Zeit BL-FU \n [per Jahr]",
+                                     "Rauchen \n [Raucher vs. kein Raucher]",
+                                     "Rauchen \n [Ex-Raucher vs. kein Raucher]",
+                                     "HDL \n [pro 10 mg/dl]"))
+```
+
+## Kummulative Inzidenz frühe AMD FIT
+```{r}
+plot_gee_vs_glm(model_gee_fit_conti_1_grs, model_glm_fit_1_gls, gg_title = "Kummulative Inzidenz frühe AMD, FIT (Mit GRS)",
+                names_covariates = c("Alter BL \n [pro 10 Jahre]",
+                                     "Geschlecht \n [Weiblich. vs. Männlich]",
+                                     "Zeit BL-FU \n [per Jahr]",
+                                     "Rauchen \n [Raucher vs. kein Raucher]",
+                                     "Rauchen \n [Ex-Raucher vs. kein Raucher]",
+                                     "HDL \n [pro 10 mg/dl]",
+                                     "GRS \n [pro 5%]"))
+```
+
+
+## Kummulative Inzidenz frühe AMD FF4
+```{r}
+kable(get_summary(data_ff4_conti_1, bl_col = "LT_conti_worst_eye", fu_col = "U3T_conti_worst_eye",
+                  bl_name <- "Baseline", fu_name = "Follow-Up"),
+      caption = "Per Proband")
+
+kable(get_summary(data_ff4_conti_long_1, bl_col = "amd_status_bl", fu_col = "amd_status_fu",
+                  bl_name <- "Baseline", fu_name = "Follow-Up"),
+      caption = "Per Auge")
+```
+
+
+## Kummulative Inzidenz frühe AMD FF4
+```{r}
+plot_gee_vs_glm(model_gee_ff4_conti_1, model_glm_ff4_1, gg_title = "Inzidenz frühe AMD, FF4 (Ohne GRS)",
+                names_covariates = c("Alter BL \n [pro 10 Jahre]",
+                                     "Geschlecht \n [Weiblich. vs. Männlich]",
+                                     "Zeit BL-FU \n [per Jahr]",
+                                     "Rauchen \n [Raucher vs. kein Raucher]",
+                                     "Rauchen \n [Ex-Raucher vs. kein Raucher]",
+                                     "HDL \n [pro 10 mg/dl]"))
+```
+
+## Kummulative Inzidenz frühe AMD FF4
+```{r}
+plot_gee_vs_glm(model_gee_ff4_conti_1_grs, model_glm_ff4_1_grs, gg_title = "Inzidenz frühe AMD, FF4 (Mit GRS)",
+                names_covariates = c("Alter BL \n [pro 10 Jahre]",
+                                     "Geschlecht \n [Weiblich. vs. Männlich]",
+                                     "Zeit BL-FU \n [per Jahr]",
+                                     "Rauchen \n [Raucher vs. kein Raucher]",
+                                     "Rauchen \n [Ex-Raucher vs. kein Raucher]",
+                                     "HDL \n [pro 10 mg/dl]",
+                                     "GRS \n [pro 5%]"))
+
+```
+
+
+## Kummulative Inzidenz späte AMD FIT (Definition 1)
+```{r}
+kable(get_summary(data_fit_conti_2, bl_col = "LT_conti_worst_eye", fu_col = "PT_conti_worst_eye",
+                  bl_name <- "Baseline", fu_name = "Follow-Up"),
+      caption = "Per Proband")
+
+kable(get_summary(data_fit_conti_long_2, bl_col = "amd_status_bl", fu_col = "amd_status_fu",
+                  bl_name <- "Baseline", fu_name = "Follow-Up"),
+      caption = "Per Auge")
+```
+
+## Kummulative Inzidenz späte AMD FIT (Definition 1)
+```{r}
+plot_gee_vs_glm(model_gee_fit_conti_2, model_glm_fit_2, gg_title = "Inzidenz späte AMD, FIT (Ohne GRS)",
+                names_covariates = c("Alter BL \n [pro 10 Jahre]",
+                                     "Geschlecht \n [Weiblich. vs. Männlich]",
+                                     "Zeit BL-FU \n [per Jahr]",
+                                     "Rauchen \n [Raucher vs. kein Raucher]",
+                                     "Rauchen \n [Ex-Raucher vs. kein Raucher]",
+                                     "HDL \n [pro 10 mg/dl]"))
+```
+
+## Kummulative Inzidenz späte AMD FIT (Definition 1)
+```{r}
+plot_gee_vs_glm(model_gee_fit_conti_2_grs, model_glm_fit_2_gls, gg_title = "Inzidenz späte AMD, FIT (Mit GRS)",
+                names_covariates = c("Alter BL \n [pro 10 Jahre]",
+                                     "Geschlecht \n [Weiblich. vs. Männlich]",
+                                     "Zeit BL-FU \n [per Jahr]",
+                                     "Rauchen \n [Raucher vs. kein Raucher]",
+                                     "Rauchen \n [Ex-Raucher vs. kein Raucher]",
+                                     "HDL \n [pro 10 mg/dl]",
+                                     "GRS \n [pro 5%]"))
+```
+
+
+# Diskussion
+
+## Diskussion
+- In manchen Fällen konvergierten Modelle für GLM aber nicht für GEE.
+
+- Für Ferris-Score konvergierten weniger GEE Modelle als für Continental-Score
+
+- Omitted Variable Bias bei GMM u.U. durch random effect kontrolliert.
+  
+
+# Backup
+
+## Kummulative Inzidenz späte AMD FIT (Definition 2)
+```{r}
+kable(get_summary(data_fit_conti_2, bl_col = "LT_conti_worst_eye", fu_col = "PT_conti_worst_eye",
+                  bl_name <- "Baseline", fu_name = "Follow-Up"),
+      caption = "Per Proband")
+
+kable(get_summary(data_fit_conti_long_2, bl_col = "amd_status_bl", fu_col = "amd_status_fu",
+                  bl_name <- "Baseline", fu_name = "Follow-Up"),
+      caption = "Per Auge")
+```
+
+## Kummulative Inzidenz späte AMD FF4 (Definition 1)
+```{r}
+kable(get_summary(data_ff4_conti_2, bl_col = "LT_conti_worst_eye", fu_col = "U3T_conti_worst_eye",
+                  bl_name <- "Baseline", fu_name = "Follow-Up"),
+      caption = "Per Proband")
+
+kable(get_summary(data_ff4_conti_long_2, bl_col = "amd_status_bl", fu_col = "amd_status_fu",
+                  bl_name <- "Baseline", fu_name = "Follow-Up"),
+      caption = "Per Auge")
+```
+
+## Kummulative Inzidenz späte AMD FF4 (Definition 2)
+```{r}
+kable(get_summary(data_ff4_conti_3, bl_col = "LT_conti_worst_eye", fu_col = "U3T_conti_worst_eye",
+                  bl_name <- "Baseline", fu_name = "Follow-Up"),
+      caption = "Per Proband")
+
+kable(get_summary(data_ff4_conti_long_3, bl_col = "amd_status_bl", fu_col = "amd_status_fu",
+                  bl_name <- "Baseline", fu_name = "Follow-Up"),
+      caption = "Per Auge")
+```
+
+## Progression späte AMD FIT
+```{r}
+kable(get_summary(data_fit_conti_4, bl_col = "LT_conti_worst_eye", fu_col = "PT_conti_worst_eye",
+                  bl_name <- "Baseline", fu_name = "Follow-Up"),
+      caption = "Per Proband")
+
+kable(get_summary(data_fit_conti_long_4, bl_col = "amd_status_bl", fu_col = "amd_status_fu",
+                  bl_name <- "Baseline", fu_name = "Follow-Up"),
+      caption = "Per Auge")
+```
+
+## Progression späte AMD FF4
+```{r}
+kable(get_summary(data_ff4_conti_4, bl_col = "LT_conti_worst_eye", fu_col = "U3T_conti_worst_eye",
+                  bl_name <- "Baseline", fu_name = "Follow-Up"),
+      caption = "Per Proband")
+
+kable(get_summary(data_ff4_conti_long_4, bl_col = "amd_status_bl", fu_col = "amd_status_fu",
+                  bl_name <- "Baseline", fu_name = "Follow-Up"),
+      caption = "Per Auge")
+```
